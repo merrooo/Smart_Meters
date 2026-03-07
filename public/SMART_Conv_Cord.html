@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحويل الإحداثيات - Smart Meters</title>
+    <link rel="stylesheet" type="text/css" href="SMART_Conv_Cord.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+</head>
+
+<body>
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <!-- Header -->
+    <div class="table-header">
+        <h2><i class="fas fa-exchange-alt"></i> نظام تحويل الإحداثيات</h2>
+        <div class="meta">
+            <div>التاريخ: <strong id="printDate">—</strong></div>
+            <div><i class="fas fa-map-marker-alt"></i> تحويل خطوط العرض والطول إلى إحداثيات محلية</div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <div class="wrapper">
+            <!-- Sidebar - Input Controls -->
+            <div class="sidebar">
+                <h3><i class="fas fa-sliders-h"></i> إدخال البيانات</h3>
+
+                <!-- Search Section -->
+                <div class="form-group">
+                    <label for="serialInput"><i class="fas fa-search"></i> بحث بالسريال:</label>
+                    <input id="serialInput" type="text" placeholder="أدخل رقم العداد للبحث...">
+                    <button id="searchBtn" class="btn btn-secondary">
+                        <i class="fas fa-search"></i> بحث في قاعدة البيانات
+                    </button>
+                </div>
+
+                <!-- Manual Input Section -->
+                <div class="form-group">
+                    <label for="lat"><i class="fas fa-globe-americas"></i> خط العرض (°N):</label>
+                    <input type="number" id="lat" step="any" placeholder="مثال: 30.9248">
+                </div>
+
+                <div class="form-group">
+                    <label for="lng"><i class="fas fa-globe-asia"></i> خط الطول (°E):</label>
+                    <input type="number" id="lng" step="any" placeholder="مثال: 6.5311">
+                </div>
+
+                <!-- Convert Button -->
+                <button id="convertBtn" class="btn btn-primary">
+                    <i class="fas fa-sync-alt"></i> تحويل إلى إحداثيات محلية
+                </button>
+
+                <!-- Results Section -->
+                <div class="results-section">
+                    <h3><i class="fas fa-calculator"></i> النتائج</h3>
+                    <div class="form-group">
+                        <label for="xResult"><i class="fas fa-map-pin"></i> الإحداثي X:</label>
+                        <input type="text" id="xResult" readonly placeholder="سيظهر هنا بعد التحويل">
+                    </div>
+                    <div class="form-group">
+                        <label for="yResult"><i class="fas fa-map-pin"></i> الإحداثي Y:</label>
+                        <input type="text" id="yResult" readonly placeholder="سيظهر هنا بعد التحويل">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content - Information & Reference -->
+            <div class="main-content">
+                <!-- Information Cards -->
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h4><i class="fas fa-info-circle"></i> عن هذه الأداة</h4>
+                        <p>تتيح هذه الأداة تحويل الإحداثيات الجغرافية العالمية (خطوط العرض والطول) إلى إحداثيات
+                            محلية
+                            (X,Y) تستخدم في أنظمة الخرائط المحلية وإدارة العدادات الذكية.</p>
+                    </div>
+
+                    <div class="info-card">
+                        <h4><i class="fas fa-lightbulb"></i> كيفية الاستخدام</h4>
+                        <ul>
+                            <li>ابحث عن العداد باستخدام الرقم التسلسلي</li>
+                            <li>أو أدخل الإحداثيات يدوياً</li>
+                            <li>اضغط زر التحويل للحصول على النتيجة</li>
+                            <li>انسخ الإحداثيات المحلية للاستخدام</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Reference Points -->
+                <div class="reference-points">
+                    <h4><i class="fas fa-crosshairs"></i> النقاط المرجعية المستخدمة</h4>
+                    <div class="points-grid">
+                        <div class="point-card">
+                            <h5>النقطة المرجعية 1</h5>
+                            <div class="point-coordinates">
+                                <div class="coord-item">
+                                    <span class="coord-label">خط العرض:</span>
+                                    <span class="coord-value">30.9248°</span>
+                                </div>
+                                <div class="coord-item">
+                                    <span class="coord-label">خط الطول:</span>
+                                    <span class="coord-value">6.5311°</span>
+                                </div>
+                                <div class="coord-item">
+                                    <span class="coord-label">X محلي:</span>
+                                    <span class="coord-value">31.0555</span>
+                                </div>
+                                <div class="coord-item">
+                                    <span class="coord-label">Y محلي:</span>
+                                    <span class="coord-value">31.3820</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="point-card">
+                            <h5>النقطة المرجعية 2</h5>
+                            <div class="point-coordinates">
+                                <div class="coord-item">
+                                    <span class="coord-label">خط العرض:</span>
+                                    <span class="coord-value">31.0555°</span>
+                                </div>
+                                <div class="coord-item">
+                                    <span class="coord-label">خط الطول:</span>
+                                    <span class="coord-value">31.3820°</span>
+                                </div>
+                                <div class="coord-item">
+                                    <span class="coord-label">X محلي:</span>
+                                    <span class="coord-value">31.3820</span>
+                                </div>
+                                <div class="coord-item">
+                                    <span class="coord-label">Y محلي:</span>
+                                    <span class="coord-value">31.9248</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <script type="module">
+                    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+                    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
+
+                    const firebaseConfig = {
+                        apiKey: "AIzaSyABeLySOk_10XjaHSUjkfnR8f3HSTFkEYU",
+                        authDomain: "ndedc-smartmeter.firebaseapp.com",
+                        databaseURL: "https://ndedc-smartmeter-default-rtdb.firebaseio.com",
+                        projectId: "ndedc-smartmeter",
+                        storageBucket: "ndedc-smartmeter.appspot.com",
+                        messagingSenderId: "557422247352",
+                        appId: "1:557422247352:web:824d4f96affd7bbb0fa34d"
+                    };
+
+                    const app = initializeApp(firebaseConfig);
+                    const db = getDatabase(app);
+
+                    // Set current date
+                    const today = new Date();
+                    document.getElementById("printDate").textContent =
+                        `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
+
+                    // Elements
+                    const serialInput = document.getElementById('serialInput');
+                    const latInput = document.getElementById('lat');
+                    const lngInput = document.getElementById('lng');
+                    const searchBtn = document.getElementById('searchBtn');
+                    const convertBtn = document.getElementById('convertBtn');
+                    const xResult = document.getElementById('xResult');
+                    const yResult = document.getElementById('yResult');
+                    const notification = document.getElementById('notification');
+
+                    // Show notification
+                    function showNotification(message, type = 'info') {
+                        notification.textContent = message;
+                        notification.className = `notification ${type}`;
+                        notification.style.display = 'flex';
+
+                        setTimeout(() => {
+                            notification.style.display = 'none';
+                        }, 3000);
+                    }
+
+                    // Search by serial number
+                    async function searchBySerial() {
+                        const serialValue = serialInput.value.trim();
+
+                        if (!serialValue) {
+                            showNotification('الرجاء إدخال رقم تسلسلي للبحث', 'warning');
+                            return;
+                        }
+
+                        try {
+                            // Show loading
+                            searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري البحث...';
+                            searchBtn.disabled = true;
+
+                            const snapshot = await get(ref(db, "SMART"));
+
+                            if (!snapshot.exists()) {
+                                showNotification('لا توجد بيانات في قاعدة البيانات', 'warning');
+                                return;
+                            }
+
+                            let found = false;
+
+                            snapshot.forEach(childSnap => {
+                                const data = childSnap.val();
+                                if (data.serial == serialValue || data.serial === serialValue) {
+                                    const lat = parseFloat(data.lat || data.Latitude || data["Latitude(y)"] || data["Latitude"]);
+                                    const lng = parseFloat(data.lon || data.lng || data.longitude || data["Longitude(x)"] || data["Longitude"]);
+
+                                    if (!isNaN(lat) && !isNaN(lng)) {
+                                        latInput.value = lat;
+                                        lngInput.value = lng;
+                                        found = true;
+
+                                        // Focus on convert button
+                                        convertBtn.focus();
+                                    }
+                                }
+                            });
+
+                            if (found) {
+                                showNotification('تم العثور على العداد وتحميل الإحداثيات', 'success');
+                            } else {
+                                showNotification('لم يتم العثور على العداد بهذا الرقم التسلسلي', 'error');
+                            }
+
+                        } catch (error) {
+                            console.error('Error searching:', error);
+                            showNotification('حدث خطأ أثناء البحث في قاعدة البيانات', 'error');
+                        } finally {
+                            // Reset button
+                            searchBtn.innerHTML = '<i class="fas fa-search"></i> بحث في قاعدة البيانات';
+                            searchBtn.disabled = false;
+                        }
+                    }
+
+                    // Reference points for conversion
+                    const referencePoints = {
+                        original: [
+                            { lat: 30.9248, lng: 6.5311 },
+                            { lat: 31.0554702, lng: 31.38197473 }
+                        ],
+                        target: [
+                            { x: 31.0554702, y: 31.38197473 },
+                            { x: 31.38197473, y: 31.9248 }
+                        ]
+                    };
+
+                    // Convert coordinates
+                    function convertCoordinates() {
+                        const lat = parseFloat(latInput.value);
+                        const lng = parseFloat(lngInput.value);
+
+                        if (isNaN(lat) || isNaN(lng)) {
+                            showNotification('الرجاء إدخال قيم صحيحة للإحداثيات', 'warning');
+                            latInput.focus();
+                            return;
+                        }
+
+                        // Validate input range
+                        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                            showNotification('الإحداثيات خارج النطاق المسموح به', 'error');
+                            return;
+                        }
+
+                        try {
+                            // Show loading
+                            convertBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحويل...';
+                            convertBtn.disabled = true;
+
+                            // Perform conversion
+                            const { original, target } = referencePoints;
+
+                            const latDiff = original[1].lat - original[0].lat;
+                            const lngDiff = original[1].lng - original[0].lng;
+
+                            const xDiff = target[1].x - target[0].x;
+                            const yDiff = target[1].y - target[0].y;
+
+                            // Calculate using linear interpolation
+                            const x = target[0].x + ((lat - original[0].lat) / latDiff) * xDiff;
+                            const y = target[0].y + ((lng - original[0].lng) / lngDiff) * yDiff;
+
+                            // Round to 6 decimal places
+                            const roundedX = Math.round(x * 1000000) / 1000000;
+                            const roundedY = Math.round(y * 1000000) / 1000000;
+
+                            // Display results
+                            xResult.value = roundedX;
+                            yResult.value = roundedY;
+
+                            // Show success message
+                            showNotification(`تم التحويل بنجاح: X = ${roundedX}, Y = ${roundedY}`, 'success');
+
+                            // Focus on result for easy copying
+                            xResult.focus();
+                            xResult.select();
+
+                        } catch (error) {
+                            console.error('Error converting coordinates:', error);
+                            showNotification('حدث خطأ أثناء عملية التحويل', 'error');
+                        } finally {
+                            // Reset button
+                            convertBtn.innerHTML = '<i class="fas fa-sync-alt"></i> تحويل إلى إحداثيات محلية';
+                            convertBtn.disabled = false;
+                        }
+                    }
+
+                    // Copy to clipboard function
+                    function copyToClipboard(text, fieldName) {
+                        navigator.clipboard.writeText(text).then(() => {
+                            showNotification(`تم نسخ ${fieldName} إلى الحافظة`, 'success');
+                        }).catch(() => {
+                            showNotification('فشل نسخ النص إلى الحافظة', 'error');
+                        });
+                    }
+
+                    // Event Listeners
+                    searchBtn.addEventListener('click', searchBySerial);
+                    convertBtn.addEventListener('click', convertCoordinates);
+
+                    // Allow Enter key to trigger search
+                    serialInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            searchBySerial();
+                        }
+                    });
+
+                    // Allow Enter key to trigger conversion
+                    latInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            convertCoordinates();
+                        }
+                    });
+
+                    lngInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            convertCoordinates();
+                        }
+                    });
+
+                    // Add click to copy functionality
+                    xResult.addEventListener('click', function () {
+                        if (this.value) {
+                            copyToClipboard(this.value, 'الإحداثي X');
+                        }
+                    });
+
+                    yResult.addEventListener('click', function () {
+                        if (this.value) {
+                            copyToClipboard(this.value, 'الإحداثي Y');
+                        }
+                    });
+
+                    // Show welcome message
+                    setTimeout(() => {
+                        showNotification('مرحباً بك في نظام تحويل الإحداثيات', 'info');
+                    }, 1000);
+                </script>
+</body>
+
+</html>

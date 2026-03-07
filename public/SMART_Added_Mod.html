@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>أضافة عداد</title>
+  <link rel="stylesheet" type="text/css" href="SMART_Added_Mod.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div id="pageOverlay">
+    <div id="loadingSpinner"></div>
+  </div>
+
+  <div class="table-header">
+    <h2>العدادات الذكية</h2>
+    <div class="meta">
+      <div>التاريخ: <strong id="printDate">—</strong></div>
+      <div>نظام إدارة العدادات</div>
+    </div>
+  </div>
+
+  <div class="wrapper">
+    <div class="sidebar">
+
+      <div class="controls">
+        <h4>إجراءات العدادات</h4>
+        <button type="button" id="addRowBtn" class="btn-success">➕ إنشاء عداد جديد</button>
+        <button type="button" id="saveNewBtn" class="btn-primary">💾 حفظ العداد الجديد</button>
+
+        <div class="action-buttons">
+          <button type="button" id="searchBtn" class="btn-primary">🔍 بحث عن عداد</button>
+          <button type="button" id="updateBtn" class="btn-warning">✏️ تحديث العداد</button>
+          <button type="button" id="deleteBtn" class="btn-danger">🗑️ حذف العداد</button>
+          <div class="controls">
+            <h4>البحث عن عداد</h4>
+            <input type="text" id="searchInput" placeholder="أدخل Serial للبحث...">
+          </div>
+
+        </div>
+      </div>
+
+      <div id="rowCountLabel" class="row-count-label">
+        جاري التحميل...
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table id="dataTable">
+        <thead>
+          <tr>
+            <th>Serial Num</th>
+            <th>SIM S.Num</th>
+            <th>Badge Number</th>
+            <th>Manufacturer</th>
+            <th>Model</th>
+            <th>EEHC Unified code</th>
+            <th>Facility Description</th>
+            <th>Disco</th>
+            <th>Disco Section</th>
+            <th>Disco Branch</th>
+            <th>منطقة</th>
+            <th>Losses Area</th>
+            <th>Device function</th>
+            <th>Distribution Facility (EEHC unified code)</th>
+            <th>Installation Date</th>
+            <th>ADDRESS4</th>
+            <th>TYPE</th>
+            <th>Latitude(Y-North)</th>
+            <th>Longitude(X-Est)</th>
+            <th>DivisionCode</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- سيتم إضافة الصفوف ديناميكياً -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+    import { getDatabase, ref, set, get, remove, onValue, update, child }
+      from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyABeLySOk_10XjaHSUjkfnR8f3HSTFkEYU",
+      authDomain: "ndedc-smartmeter.firebaseapp.com",
+      projectId: "ndedc-smartmeter",
+      storageBucket: "ndedc-smartmeter.appspot.com",
+      messagingSenderId: "557422247352",
+      appId: "1:557422247352:web:824d4f96affd7bbb0fa34d",
+      measurementId: "G-3DCP87C92Y"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    console.log("تم تهيئة Firebase بنجاح!");
+
+    // ---- العناصر ----
+    const tbody = document.querySelector("#dataTable tbody");
+    const addRowBtn = document.getElementById("addRowBtn");
+    const saveNewBtn = document.getElementById("saveNewBtn");
+    const searchBtn = document.getElementById("searchBtn");
+    const updateBtn = document.getElementById("updateBtn");
+    const deleteBtn = document.getElementById("deleteBtn");
+    const searchInput = document.getElementById("searchInput");
+    const printDateEl = document.getElementById("printDate");
+
+    // ---- التاريخ ----
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    printDateEl.textContent = `${yyyy}-${mm}-${dd}`;
+
+    // ---- المفاتيح ----
+    const FIELD_KEYS = [
+      "serial", "sim", "badge", "manuf", "model", "code1", "facDesc",
+      "disco", "discoSec", "discoBranch", "area", "lossArea", "devFunc",
+      "distFac", "installDate", "addr4", "type", "lat", "lon","dive"
+    ];
+
+    let currentMeter = null;
+    let isNewMeter = false;
+
+    // ---- إنشاء صف فارغ ----
+    function createEmptyRow() {
+      tbody.innerHTML = '';
+      const tr = tbody.insertRow();
+      tr.id = "currentMeterRow";
+
+      FIELD_KEYS.forEach((key) => {
+        const td = tr.insertCell();
+        td.contentEditable = true;
+        td.setAttribute("tabindex", "0");
+        td.textContent = "";
+        td.className = `cell-${key}`;
+
+        // إضافة placeholder
+        const placeholder = getPlaceholder(key);
+        td.setAttribute("data-placeholder", placeholder);
+
+        // عرض placeholder عند التركيز
+        td.addEventListener('focus', function () {
+          if (this.textContent === '') {
+            this.textContent = this.getAttribute('data-placeholder');
+            this.style.color = '#95a5a6';
+          }
+        });
+
+        td.addEventListener('blur', function () {
+          if (this.textContent === this.getAttribute('data-placeholder')) {
+            this.textContent = '';
+            this.style.color = '#333';
+          }
+        });
+      });
+
+      return tr;
+    }
+
+    // ---- الحصول على placeholder ----
+    function getPlaceholder(field) {
+      const placeholders = {
+        "serial": "مثال: 83007618",
+        "sim": "مثال: 8920040112413180496",
+        "badge": "مثال: PO: 50/2024/2025",
+        "manuf": "مثال: ESMC",
+        "model": "مثال: CL730D22H",
+        "code1": "مثال: EEHC-001",
+        "facDesc": "لوحة طلخا القديمة- مغذي غنام-",
+        "disco": "مثال: NDEDC",
+        "discoSec": "مثال:قطاع جنوب الدقهلية",
+        "discoBranch": "مثال:هندسة طلخا",
+        "area": "طلخا",
+        "lossArea": "منطقة الفقد",
+        "devFunc": "مثال: Transformer",
+        "distFac": "كود مرفق التوزيع",
+        "installDate": `${yyyy}-${mm}-${dd}`,
+        "addr4": "العنوان",
+        "type": "نوع العداد",
+        "lat": "مثال: 30.0444",
+        "lon": "مثال: 31.2357",
+        "dive": "مثال: 450"
+      };
+      return placeholders[field] || "أدخل البيانات هنا";
+    }
+
+    // ---- عرض بيانات العداد ----
+    function displayMeterData(meterData) {
+      const tr = createEmptyRow();
+      currentMeter = meterData;
+      isNewMeter = false;
+      saveNewBtn.style.display = 'none';
+
+      FIELD_KEYS.forEach((key, index) => {
+        const td = tr.cells[index];
+        td.textContent = meterData[key] || "";
+        td.style.color = '#333';
+      });
+    }
+
+    // ---- الحصول على البيانات من الجدول ----
+    function getDataFromTable() {
+      const tr = document.getElementById("currentMeterRow");
+      if (!tr) return null;
+
+      const data = {};
+      FIELD_KEYS.forEach((key, index) => {
+        const cellContent = tr.cells[index].textContent;
+        const placeholder = getPlaceholder(key);
+
+        // إذا كان المحتوى يساوي placeholder، نعتبره فارغاً
+        data[key] = (cellContent === placeholder) ? "" : cellContent.trim();
+      });
+      return data;
+    }
+
+    // ---- إضافة عداد جديد ----
+    addRowBtn.addEventListener("click", () => {
+      createEmptyRow();
+      isNewMeter = true;
+      saveNewBtn.style.display = 'block';
+      updateBtn.style.display = 'none';
+
+      // تعيين قيم افتراضية
+      const tr = document.getElementById("currentMeterRow");
+      tr.cells[14].textContent = `${yyyy}-${mm}-${dd}`;
+      tr.cells[2].textContent = "PO: 50/2024/2025";
+      tr.cells[3].textContent = "ESMC";
+      tr.cells[4].textContent = "CL730D22H";
+      tr.cells[7].textContent = "NDEDC";
+      tr.cells[12].textContent = "Transformer";
+
+      tr.cells[0].focus();
+      updateRowCount("جديد", "warning");
+    });
+
+    // ---- حفظ العداد الجديد ----
+    saveNewBtn.addEventListener("click", async () => {
+      const meterData = getDataFromTable();
+      if (!meterData) {
+        alert("لا يوجد عداد لعرضه");
+        return;
+      }
+
+      const serial = meterData.serial.trim();
+      if (!serial) {
+        alert("يرجى إدخال الرقم التسلسلي");
+        const tr = document.getElementById("currentMeterRow");
+        tr.cells[0].focus();
+        return;
+      }
+
+      disablePage();
+
+      try {
+        // التحقق مما إذا كان العداد موجوداً
+        const snapshot = await get(ref(db, `SMART/${serial}`));
+
+        if (snapshot.exists()) {
+          alert("⚠️ العداد موجود بالفعل. استخدم زر التحديث بدلاً من ذلك");
+          enablePage();
+          return;
+        }
+
+        // حفظ العداد الجديد
+        await set(ref(db, `SMART/${serial}`), meterData);
+        alert(`✅ تم إضافة العداد ${serial} بنجاح`);
+
+        // تغيير الحالة من جديد إلى موجود
+        isNewMeter = false;
+        saveNewBtn.style.display = 'none';
+        updateBtn.style.display = 'block';
+        currentMeter = meterData;
+
+      } catch (error) {
+        console.error(error);
+        alert("❌ حدث خطأ أثناء الحفظ");
+      } finally {
+        enablePage();
+      }
+    });
+
+    searchBtn.addEventListener("click", async () => {
+      const query = searchInput.value.trim();
+
+      if (!query) {
+        alert("يرجى إدخال رقم تسلسلي للبحث");
+        searchInput.focus();
+        return;
+      }
+
+      disablePage();
+
+      try {
+        // البحث عن العداد في قاعدة البيانات
+        const snapshot = await get(ref(db, 'SMART'));
+
+        if (snapshot.exists()) {
+          const allMeters = snapshot.val();
+          let foundMeter = null;
+          let foundKey = null;
+
+          // البحث عن العداد باستخدام الرقم التسلسلي
+          for (const key in allMeters) {
+            if (key === query || allMeters[key]?.serial === query) {
+              foundMeter = allMeters[key];
+              foundKey = key;
+              break;
+            }
+          }
+
+          if (foundMeter) {
+            displayMeterData(foundMeter);
+            isNewMeter = false;
+            saveNewBtn.style.display = 'none';
+            updateBtn.style.display = 'block';
+            updateRowCount("موجود", "success");
+            searchInput.value = foundKey; // عرض المفتاح الذي تم العثور عليه
+          } else {
+            tbody.innerHTML = `
+          <tr>
+            <td colspan="19" class="empty-state">
+              🔍 العداد ${query} غير موجود
+              <br>
+              <small style="color: #95a5a6; margin-top: 10px; display: block;">
+                يمكنك إضافته باستخدام زر "إنشاء عداد جديد"
+              </small>
+            </td>
+          </tr>
+        `;
+            currentMeter = null;
+            updateRowCount("غير موجود", "danger");
+          }
+        } else {
+          tbody.innerHTML = `
+        <tr>
+          <td colspan="19" class="empty-state">
+            📭 قاعدة البيانات فارغة
+            <br>
+            <small style="color: #95a5a6; margin-top: 10px; display: block;">
+              لا توجد عدادات مسجلة بعد
+            </small>
+          </td>
+        </tr>
+      `;
+          updateRowCount("فارغة", "warning");
+        }
+
+      } catch (error) {
+        console.error("خطأ في البحث:", error);
+        alert("حدث خطأ أثناء البحث في قاعدة البيانات");
+      } finally {
+        enablePage();
+      }
+    });
+
+    // ---- تحديث العداد ----
+    updateBtn.addEventListener("click", async () => {
+      const meterData = getDataFromTable();
+      if (!meterData) {
+        alert("لا يوجد عداد لعرضه");
+        return;
+      }
+
+      const newSerial = meterData.serial.trim();
+      if (!newSerial) {
+        alert("يرجى إدخال الرقم التسلسلي");
+        const tr = document.getElementById("currentMeterRow");
+        tr.cells[0].focus();
+        return;
+      }
+
+      disablePage();
+
+      try {
+        const oldSerial = currentMeter ? currentMeter.serial : null;
+
+        // Check if serial number has changed
+        if (oldSerial && oldSerial !== newSerial) {
+          // Check if the new serial already exists
+          const snapshot = await get(ref(db, `SMART/${newSerial}`));
+          if (snapshot.exists()) {
+            if (!confirm(`العداد برقم ${newSerial} موجود بالفعل. هل تريد استبدال بياناته وحذف العداد القديم ${oldSerial}؟`)) {
+              enablePage();
+              return;
+            }
+          } else {
+            if (!confirm(`هل أنت متأكد من تغيير الرقم التسلسلي من ${oldSerial} إلى ${newSerial}؟`)) {
+              enablePage();
+              return;
+            }
+          }
+
+          // Save new entry
+          await set(ref(db, `SMART/${newSerial}`), meterData);
+          // Delete old entry
+          await remove(ref(db, `SMART/${oldSerial}`));
+
+          alert(`✅ تم تحديث العداد وتغيير الرقم التسلسلي بنجاح`);
+        } else {
+          // Standard update
+          const snapshot = await get(ref(db, `SMART/${newSerial}`));
+          if (!snapshot.exists()) {
+            if (!confirm("العداد غير موجود. هل تريد إضافته كعداد جديد؟")) {
+              enablePage();
+              return;
+            }
+          }
+          await set(ref(db, `SMART/${newSerial}`), meterData);
+          alert(`✅ تم ${snapshot.exists() ? 'تحديث' : 'إضافة'} العداد ${newSerial} بنجاح`);
+        }
+
+        currentMeter = meterData;
+
+      } catch (error) {
+        console.error(error);
+        alert("❌ حدث خطأ أثناء الحفظ");
+      } finally {
+        enablePage();
+      }
+    });
+
+    // ---- حذف العداد ----
+    deleteBtn.addEventListener("click", async () => {
+      const meterData = getDataFromTable();
+      if (!meterData) {
+        alert("لا يوجد عداد لعرضه");
+        return;
+      }
+
+      const serial = meterData.serial.trim();
+      if (!serial) {
+        alert("يرجى إدخال الرقم التسلسلي للحذف");
+        const tr = document.getElementById("currentMeterRow");
+        tr.cells[0].focus();
+        return;
+      }
+
+      if (!confirm(`هل أنت متأكد من حذف العداد ${serial}؟\nهذا الإجراء لا يمكن التراجع عنه.`)) {
+        return;
+      }
+
+      disablePage();
+
+      try {
+        const snapshot = await get(ref(db, `SMART/${serial}`));
+
+        if (!snapshot.exists()) {
+          alert("⚠️ العداد غير موجود في قاعدة البيانات");
+          enablePage();
+          return;
+        }
+
+        await remove(ref(db, `SMART/${serial}`));
+
+        tbody.innerHTML = '';
+        currentMeter = null;
+        isNewMeter = false;
+        saveNewBtn.style.display = 'none';
+
+        alert(`✅ تم حذف العداد ${serial} بنجاح`);
+        updateRowCount("محذوف", "danger");
+
+      } catch (error) {
+        console.error(error);
+        alert("❌ حدث خطأ أثناء الحذف");
+      } finally {
+        enablePage();
+      }
+    });
+
+    // ---- البحث المباشر أثناء الكتابة ----
+    searchInput.addEventListener("input", async () => {
+      const query = searchInput.value.trim();
+
+      if (query.length >= 3) {
+        disablePage();
+
+        try {
+          const snapshot = await get(ref(db, `SMART/${query}`));
+
+          if (snapshot.exists()) {
+            const meterData = snapshot.val();
+            displayMeterData(meterData);
+            isNewMeter = false;
+            saveNewBtn.style.display = 'none';
+            updateBtn.style.display = 'block';
+            updateRowCount("موجود", "success");
+          }
+        } catch (error) {
+          console.error(error);
+        } finally {
+          enablePage();
+        }
+      } else if (!query) {
+        tbody.innerHTML = '';
+        currentMeter = null;
+        updateRowCount("جاهز", "info");
+      }
+    });
+
+    // ---- تحديث عداد الصفوف ----
+    function updateRowCount(status, type) {
+      const label = document.getElementById("rowCountLabel");
+      const colors = {
+        "success": "#27ae60",
+        "warning": "#f39c12",
+        "danger": "#e74c3c",
+        "info": "#3498db"
+      };
+
+      label.textContent = `الحالة: ${status}`;
+      label.style.color = colors[type] || "#7f8c8d";
+    }
+
+    // ---- وظائف التحميل ----
+    function disablePage() {
+      document.getElementById("pageOverlay").style.display = "flex";
+    }
+
+    function enablePage() {
+      document.getElementById("pageOverlay").style.display = "none";
+    }
+
+    // ---- التهيئة ----
+    window.addEventListener("DOMContentLoaded", () => {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="19" class="empty-state">
+            ⚡ ابحث عن عداد أو أنشئ عداداً جديداً
+            <br>
+            <small style="color: #95a5a6; margin-top: 10px; display: block;">
+              أدخل الرقم التسلسلي في مربع البحث أو اضغط على "إنشاء عداد جديد"
+            </small>
+          </td>
+        </tr>
+      `;
+
+      updateRowCount("جاهز", "info");
+      searchInput.focus();
+    });
+
+    // ---- إضافة اختصار لوحة المفاتيح ----
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key === 'Enter') {
+        if (isNewMeter && saveNewBtn.style.display !== 'none') {
+          saveNewBtn.click();
+        } else if (!isNewMeter) {
+          updateBtn.click();
+        }
+      }
+
+      if (e.key === 'Escape') {
+        searchInput.focus();
+        searchInput.select();
+      }
+    });
+
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> إدارة الأنظمة الحديثة</title>
+    <link rel="stylesheet" type="text/css" href="SMART_Help.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header animate">
+            <div class="profile-image">
+                <div class="avatar">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+            </div>
+            <h1>المهندس / أمير السيوفي</h1>
+            <div class="title">الأدارة العامة للأنظمة الحديثة</div>
+        </header>
+        <!-- Contact Section -->
+        <div class="contact-section animate delay-08">
+            <h2>معلومات التواصل</h2>
+            <div class="contact-grid">
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h3>البريد الإلكتروني</h3>
+                    <p>amirmerrooo@gmail.com</p>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <h3> موبايل</h3>
+                    <p>201017564638+</p>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h3>موقع العمل</h3>
+                    <p>شركة شمال الدلتا للتوزيع الكهرباء</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer animate delay-12">
+
+            <div class="footer-copyright">
+                © 2024 جميع الحقوق محفوظة | المهندس أمير السيوفي - ادارة الأنظمة الحديثة
+            </div>
+        </footer>
+    </div>
+
+    <!-- Back Button -->
+    <a href="SMART_R.html" class="back-button" aria-label="رجوع" title="رجوع">
+        <i class="fas fa-arrow-right"></i>
+    </a>
+
+    <script>
+        // Add animation on scroll
+        document.addEventListener('DOMContentLoaded', function () {
+            const observerOptions = {
+                threshold: 0.1
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate');
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all sections
+            document.querySelectorAll('.info-card, .stats-section, .contact-section, .projects-section').forEach((section) => {
+                observer.observe(section);
+            });
+
+            // Set current year in footer
+            const yearSpan = document.querySelector('.current-year');
+            if (yearSpan) {
+                yearSpan.textContent = new Date().getFullYear();
+            }
+        });
+    </script>
+</body>
+
+</html>

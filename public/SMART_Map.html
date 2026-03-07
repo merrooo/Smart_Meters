@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>البحث عن عداد بالأحداثيات</title>
+    <link rel="stylesheet" type="text/css" href="SMART_Map.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDl96h-6fqtJh5psKqT8vB5bTEay_8-BHg"></script>
+
+</head>
+
+<body>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <!-- Header -->
+    <div class="table-header">
+        <h2><i class="fas fa-map-marked-alt"></i> خريطة العدادات الذكية</h2>
+        <div class="meta">
+            <div>التاريخ: <strong id="printDate">—</strong></div>
+            <div><i class="fas fa-search-location"></i> البحث والعرض على الخريطة</div>
+        </div>
+    </div>
+
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h3><i class="fas fa-sliders-h"></i> لوحة التحكم</h3>
+
+            <!-- Search Section -->
+            <div class="control-group">
+                <label for="serialInput"><i class="fas fa-search"></i> بحث بالسريال:</label>
+                <input id="serialInput" type="text" placeholder="أدخل رقم العداد للبحث...">
+                <button id="searchBtn">
+                    <i class="fas fa-search"></i> بحث
+                </button>
+            </div>
+
+            <!-- Source Input -->
+            <div class="control-group">
+                <label for="source"><i class="fas fa-bolt"></i> المغذى \ اللوحة:</label>
+                <input id="source" type="text" placeholder="أدخل اسم المغذى أو اللوحة">
+            </div>
+
+            <!-- Coordinates Input -->
+            <div class="control-group">
+                <label for="lat"><i class="fas fa-globe-americas"></i> خط العرض (°N):</label>
+                <input id="lat" type="number" step="any" placeholder="مثال: 30.9248">
+                
+                <label for="lng"><i class="fas fa-globe-asia"></i> خط الطول (°E):</label>
+                <input id="lng" type="number" step="any" placeholder="مثال: 31.3819">
+            </div>
+
+            <!-- Statistics Panel -->
+            <div class="stats-panel" id="statsPanel">
+                <h4><i class="fas fa-chart-bar"></i> معلومات الموقع</h4>
+                <div class="stat-items">
+                    <div class="stat-item">
+                        <span class="stat-label">الإحداثيات:</span>
+                        <span class="stat-value" id="coordDisplay">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">السريال:</span>
+                        <span class="stat-value" id="serialDisplay">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">المنشأة:</span>
+                        <span class="stat-value" id="facilityDisplay">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">المغذى:</span>
+                        <span class="stat-value" id="sourceDisplay">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Searches -->
+            <div class="recent-searches">
+                <h4><i class="fas fa-history"></i> عمليات البحث الأخيرة</h4>
+                <ul class="recent-list" id="recentList">
+                    <!-- سيتم ملؤه ديناميكياً -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- Map -->
+        <div id="map"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyABeLySOk_10XjaHSUjkfnR8f3HSTFkEYU",
+            authDomain: "ndedc-smartmeter.firebaseapp.com",
+            projectId: "ndedc-smartmeter",
+            storageBucket: "ndedc-smartmeter.appspot.com",
+            messagingSenderId: "557422247352",
+            appId: "1:557422247352:web:824d4f96affd7bbb0fa34d"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // DOM Elements
+        const serialInput = document.getElementById('serialInput');
+        const latInput = document.getElementById('lat');
+        const lngInput = document.getElementById('lng');
+        const sourceInput = document.getElementById('source');
+        const searchBtn = document.getElementById('searchBtn');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const notification = document.getElementById('notification');
+        const statsPanel = document.getElementById('statsPanel');
+        const recentList = document.getElementById('recentList');
+        const coordDisplay = document.getElementById('coordDisplay');
+        const serialDisplay = document.getElementById('serialDisplay');
+        const facilityDisplay = document.getElementById('facilityDisplay');
+        const sourceDisplay = document.getElementById('sourceDisplay');
+
+        // Set current date
+        const today = new Date();
+        document.getElementById("printDate").textContent =
+            `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
+        
+        let map;
+        try {
+            if (typeof google === 'undefined') throw new Error("Google Maps API not loaded");
+
+            // Initialize Google Map with Egypt centered
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: 30.0444, lng: 31.2357 }, // Cairo coordinates
+                zoom: 10,
+                mapTypeId: 'roadmap',
+                styles: [
+                    {
+                        featureType: "poi",
+                        elementType: "labels",
+                        stylers: [{ visibility: "off" }]
+                    }
+                ]
+            });
+        } catch (error) {
+            console.error("Map Error:", error);
+            document.getElementById("map").innerHTML = `<div style="display:flex;justify-content:center;align-items:center;height:100%;color:red;font-weight:bold;direction:rtl;">خطأ في تحميل الخريطة: ${error.message}.<br>يرجى التحقق من مفتاح API واتصال الإنترنت.</div>`;
+        }
+
+        let marker = null;
+        let currentSerial = '';
+        let recentSearches = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+
+        // Show/hide loading
+        function showLoading() {
+            loadingOverlay.style.display = 'flex';
+        }
+
+        function hideLoading() {
+            loadingOverlay.style.display = 'none';
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'flex';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // Update recent searches list
+        function updateRecentSearches() {
+            recentList.innerHTML = '';
+            
+            if (recentSearches.length === 0) {
+                recentList.innerHTML = '<li style="color: #bdc3c7; text-align: center; padding: 10px;">لا توجد عمليات بحث سابقة</li>';
+                return;
+            }
+            
+            recentSearches.slice(0, 5).forEach(search => {
+                const li = document.createElement('li');
+                li.className = 'recent-item';
+                li.innerHTML = `
+                    <div>
+                        <div class="recent-serial">${search.serial}</div>
+                        <div class="recent-coords">${search.lat.toFixed(4)}°N, ${search.lng.toFixed(4)}°E</div>
+                    </div>
+                    <div>
+                        <i class="fas fa-map-marker-alt" style="color: #1abc9c;"></i>
+                    </div>
+                `;
+                
+                li.addEventListener('click', () => {
+                    serialInput.value = search.serial;
+                    latInput.value = search.lat;
+                    lngInput.value = search.lng;
+                    sourceInput.value = search.source || '';
+                    
+                    updateMap(search.lat, search.lng, search.serial, search.source);
+                    showNotification(`تم تحميل بيانات ${search.serial}`, 'success');
+                });
+                
+                recentList.appendChild(li);
+            });
+        }
+
+        // Add to recent searches
+        function addToRecentSearches(serial, lat, lng, source) {
+            // Remove if already exists
+            recentSearches = recentSearches.filter(s => s.serial !== serial);
+            
+            // Add to beginning
+            recentSearches.unshift({
+                serial: serial,
+                lat: lat,
+                lng: lng,
+                source: source || '',
+                timestamp: new Date().toISOString()
+            });
+            
+            // Keep only last 10 searches
+            recentSearches = recentSearches.slice(0, 10);
+            
+            // Save to localStorage
+            localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
+            
+            // Update UI
+            updateRecentSearches();
+        }
+
+        // Search Serial in Firebase
+        async function searchBySerial() {
+            const serialValue = serialInput.value.trim();
+            
+            if (!serialValue) {
+                showNotification('الرجاء إدخال رقم تسلسلي للبحث', 'warning');
+                serialInput.focus();
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const snapshot = await get(ref(db, "SMART"));
+                
+                if (!snapshot.exists()) {
+                    showNotification('لا توجد بيانات في قاعدة البيانات', 'error');
+                    return;
+                }
+
+                let found = false;
+                let foundData = null;
+                
+                snapshot.forEach(childSnap => {
+                    const data = childSnap.val();
+                    if (data.serial === serialValue) {
+                        foundData = data;
+                        found = true;
+                    }
+                });
+
+                if (found && foundData) {
+                    const lat = parseFloat(foundData.lat || foundData["Latitude(y)"] || foundData.Latitude);
+                    const lng = parseFloat(foundData.lon || foundData["Longitude(x)"] || foundData.Longitude);
+                    const facDesc = foundData.facDesc || foundData.source || "غير محدد";
+                    const source = foundData.addr4 || foundData.source || "غير محدد";
+
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        latInput.value = lat;
+                        lngInput.value = lng;
+                        sourceInput.value = source;
+                        currentSerial = serialValue;
+                        
+                        // Show on map
+                        updateMap(lat, lng, serialValue, source, facDesc);
+                        
+                        // Add to recent searches
+                        addToRecentSearches(serialValue, lat, lng, source);
+                        
+                        showNotification(`تم العثور على العداد ${serialValue}`, 'success');
+                    } else {
+                        showNotification('الإحداثيات غير موجودة لهذا السجل', 'warning');
+                    }
+                } else {
+                    showNotification(`لم يتم العثور على عداد بالرقم التسلسلي: ${serialValue}`, 'error');
+                }
+
+            } catch (error) {
+                console.error('Error searching:', error);
+                showNotification('حدث خطأ أثناء البحث في قاعدة البيانات', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Show marker on map
+        function updateMap(lat, lng, serial = '', source = '', facility = '') {
+            if (isNaN(lat) || isNaN(lng)) {
+                showNotification('الإحداثيات غير صحيحة', 'error');
+                return;
+            }
+
+            // Center map on coordinates
+            map.setCenter({ lat, lng });
+            map.setZoom(15);
+
+            // Remove previous marker
+            if (marker) {
+                marker.setMap(null);
+            }
+
+            // Create new marker with custom icon
+            marker = new google.maps.Marker({
+                position: { lat, lng },
+                map: map,
+                title: serial || 'موقع العداد',
+                animation: google.maps.Animation.DROP,
+                icon: {
+                    url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+                    scaledSize: new google.maps.Size(40, 40)
+                }
+            });
+
+            // Create info window
+            const infoWindow = new google.maps.InfoWindow({
+                content: `
+                    <div style="padding: 15px; font-family: 'Cairo'; direction: rtl;">
+                        <h3 style="color: #2c3e50; margin-bottom: 10px; border-bottom: 2px solid #1abc9c; padding-bottom: 5px;">
+                            <i class="fas fa-microchip"></i> العداد ${serial}
+                        </h3>
+                        <div style="margin-bottom: 8px;">
+                            <strong><i class="fas fa-map-marker-alt"></i> الإحداثيات:</strong><br>
+                            ${lat.toFixed(6)}°N, ${lng.toFixed(6)}°E
+                        </div>
+                        ${facility ? `
+                        <div style="margin-bottom: 8px;">
+                            <strong><i class="fas fa-building"></i> المنشأة:</strong><br>
+                            ${facility}
+                        </div>` : ''}
+                        ${source ? `
+                        <div style="margin-bottom: 8px;">
+                            <strong><i class="fas fa-bolt"></i> المغذى:</strong><br>
+                            ${source}
+                        </div>` : ''}
+                        <div style="color: #7f8c8d; font-size: 12px; margin-top: 10px;">
+                            <i class="fas fa-info-circle"></i> تم البحث في: ${new Date().toLocaleString('ar-EG')}
+                        </div>
+                    </div>
+                `
+            });
+
+            // Open info window
+            infoWindow.open(map, marker);
+
+            // Add click listener to marker
+            marker.addListener('click', () => {
+                infoWindow.open(map, marker);
+            });
+
+            // Update statistics panel
+            coordDisplay.textContent = `${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E`;
+            serialDisplay.textContent = serial || '-';
+            facilityDisplay.textContent = facility || '-';
+            sourceDisplay.textContent = source || '-';
+            
+            // Show statistics panel
+            statsPanel.classList.add('show');
+        }
+
+        // Handle Go button click
+        function handleGoButton() {
+            const lat = parseFloat(latInput.value);
+            const lng = parseFloat(lngInput.value);
+            const serial = serialInput.value.trim() || 'غير معروف';
+            const source = sourceInput.value.trim();
+
+            if (isNaN(lat) || isNaN(lng)) {
+                showNotification('الرجاء إدخال إحداثيات صحيحة', 'warning');
+                latInput.focus();
+                return;
+            }
+
+            updateMap(lat, lng, serial, source);
+            
+            if (serial !== 'غير معروف') {
+                addToRecentSearches(serial, lat, lng, source);
+            }
+            
+            showNotification(`تم عرض الإحداثيات على الخريطة`, 'success');
+        }
+
+        // Event Listeners
+        searchBtn.addEventListener('click', searchBySerial);
+        
+        // Enter key support
+        serialInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                searchBySerial();
+            }
+        });
+        
+        latInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                handleGoButton();
+            }
+        });
+        
+        lngInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                handleGoButton();
+            }
+        });
+        
+        sourceInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                handleGoButton();
+            }
+        });
+
+        // Initialize recent searches
+        updateRecentSearches();
+
+        // Add map controls
+        const mapControls = document.createElement('div');
+        mapControls.className = 'map-controls';
+        mapControls.innerHTML = `
+            <button class="map-control-btn" id="resetMapBtn" title="إعادة تعيين الخريطة">
+                <i class="fas fa-home"></i> الرئيسية
+            </button>
+            <button class="map-control-btn" id="toggleSatelliteBtn" title="تبديل نوع الخريطة">
+                <i class="fas fa-satellite"></i> القمر الصناعي
+            </button>
+        `;
+        
+        document.getElementById('map').parentElement.appendChild(mapControls);
+
+        // Map control events
+        document.getElementById('resetMapBtn').addEventListener('click', () => {
+            map.setCenter({ lat: 31.0515779, lng: 31.394057 });
+            map.setZoom(10);
+            showNotification('تم إعادة الخريطة إلى الوضع الافتراضي', 'info');
+        });
+
+        document.getElementById('toggleSatelliteBtn').addEventListener('click', () => {
+            if (map.getMapTypeId() === 'roadmap') {
+                map.setMapTypeId('hybrid');
+                showNotification('تم التبديل إلى العرض بالقمر الصناعي', 'info');
+            } else {
+                map.setMapTypeId('roadmap');
+                showNotification('تم التبديل إلى الخريطة العادية', 'info');
+            }
+        });
+
+        // Welcome message
+        setTimeout(() => {
+            showNotification('مرحباً بك في نظام البحث والعرض على الخريطة', 'info');
+        }, 1000);
+
+        // Auto-focus on serial input
+        serialInput.focus();
+    </script>
+</body>
+</html>

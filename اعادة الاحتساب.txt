@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حاسبة الكهرباء - النظام التراكمي المطور</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', sans-serif; background-color: #f4f7f6; padding: 20px; }
+        .container { max-width: 1100px; margin: 0 auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .input-group { display: flex; gap: 15px; margin-bottom: 30px; background: #eef2f3; padding: 20px; border-radius: 12px; flex-wrap: wrap; align-items: flex-end; }
+        .input-item { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 150px; }
+        label { font-weight: bold; font-size: 0.85rem; color: #444; }
+        input, select { padding: 12px; border: 1px solid #d1d8e0; border-radius: 8px; font-family: 'Cairo'; }
+        #totmoney { color: #d63031; font-weight: 800; border: 2px solid #ff7675; background: #fff5f5; }
+        #totmoneymeter { color: #27ae60; font-weight: 800; border: 2px solid #2ecc71; background: #f0fff4; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { background: #2d3436; color: white; padding: 15px; }
+        td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; }
+        .highlight { background-color: #fff9c4 !important; outline: 2px solid #fbc02d; }
+        .badge { padding: 4px 12px; border-radius: 15px; background: #636e72; color: white; font-size: 0.75rem; }
+        .total-cell { font-weight: bold; color: #2d3436; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 style="text-align: center; color: #2d3436;"><i class="fas fa-calculator"></i> حاسبة الفروق التراكمية (2024-2025)</h2>
+    
+    <div class="input-group">
+        <div class="input-item">
+            <label>نوع النشاط</label>
+            <select id="tariffType" onchange="initTable()">
+                <option value="residential">منزلي (تراكمي)</option>
+                <option value="commercial">تجاري (تراكمي)</option>
+            </select>
+        </div>
+        <div class="input-item">
+            <label>الاستهلاك (ك.و.س)</label>
+            <input type="number" id="tkwh" value="1001" oninput="calculate()">
+        </div>
+        <div class="input-item">
+            <label>الرصيد المتبقي (جنية)</label>
+            <input type="number" id="bmoney" value="0" oninput="calculate()">
+        </div>
+        <div class="input-item">
+            <label>إجمالي الفاتورة</label>
+            <input type="number" id="totmoney" readonly>
+        </div>
+        <div class="input-item">
+            <label>المطلوب سداده</label>
+            <input type="number" id="totmoneymeter" readonly>
+        </div>
+    </div>
+
+    <table id="mainTable">
+        <thead>
+            <tr>
+                <th>الشريحة</th>
+                <th>الاستهلاك (q)</th>
+                <th>السعر (p)</th>
+                <th>خدمة العملاء (s)</th>
+                <th>إعادة الحساب التراكمي (r)</th>
+                <th>الإجمالي (t)</th>
+            </tr>
+        </thead>
+        <tbody id="tariffTableBody"></tbody>
+    </table>
+</div>
+
+<script>
+    // قيم الفروق الثابتة (يتم جمعها برمجياً)
+    const DIFFS = {
+        res: { r3: 24.00, r6: 135.00, r7: 170.00 },
+        com: { r2: 55.00, r3: 50.00, r5: 140.00 }
+    };
+
+    const config = {
+        residential: [
+            { label: "ش1 (0-50)", p: 0.68, s: 1 }, { label: "ش2 (51-100)", p: 0.78, s: 2 },
+            { label: "ش3 (0-200)", p: 0.95, s: 6 }, { label: "ش4 (201-350)", p: 1.55, s: 11 },
+            { label: "ش5 (351-650)", p: 1.65, s: 15 }, { label: "ش6 (651-1000)", p: 2.10, s: 25 },
+            { label: "ش7 (1001+)", p: 2.23, s: 40 }
+        ],
+        commercial: [
+            { label: "ش1 (0-100)", p: 0.85, s: 5 }, { label: "ش2 (0-250)", p: 1.68, s: 15 },
+            { label: "ش3 (0-600)", p: 2.20, s: 20 }, { label: "ش4 (601-1000)", p: 2.27, s: 25 },
+            { label: "ش5 (1001+)", p: 2.33, s: 40 }
+        ]
+    };
+
+    function initTable() {
+        const type = document.getElementById('tariffType').value;
+        const tbody = document.getElementById('tariffTableBody');
+        tbody.innerHTML = '';
+        config[type].forEach((item, index) => {
+            const i = index + 1;
+            tbody.innerHTML += `<tr id="row${i}">
+                <td><span class="badge">${item.label}</span></td>
+                <td><input id="q${i}" readonly value="0"></td>
+                <td><input id="p${i}" style="width:70px" value="${item.p}" oninput="calculate()"></td>
+                <td><input id="s${i}" style="width:60px" value="${item.s}" oninput="calculate()"></td>
+                <td><input id="r${i}" style="width:80px; color:blue" value="0" readonly></td>
+                <td><input id="t${i}" class="total-cell" readonly value="0"></td>
+            </tr>`;
+        });
+        calculate();
+    }
+
+    function calculate() {
+        const type = document.getElementById('tariffType').value;
+        const totalKwh = Number(document.getElementById('tkwh').value) || 0;
+        const balance = Number(document.getElementById('bmoney').value) || 0;
+        const rowsCount = config[type].length;
+
+        for (let i = 1; i <= rowsCount; i++) {
+            document.getElementById(`q${i}`).value = 0;
+            document.getElementById(`r${i}`).value = 0;
+            document.getElementById(`row${i}`).classList.remove('highlight');
+        }
+
+        if (type === 'residential') {
+            if (totalKwh >= 1001) {
+                document.getElementById('q7').value = totalKwh;
+                // يجمع كافة الفروق السابقة المرتبطة بتغيير المحاسبة (ش3 + ش6 + ش7)
+                document.getElementById('r7').value = (DIFFS.res.r3 + DIFFS.res.r6 + DIFFS.res.r7).toFixed(2);
+                document.getElementById('row7').classList.add('highlight');
+            } else if (totalKwh >= 651) {
+                document.getElementById('q6').value = totalKwh;
+                // يجمع فروق ش3 + ش6
+                document.getElementById('r6').value = (DIFFS.res.r3 + DIFFS.res.r6).toFixed(2);
+                document.getElementById('row6').classList.add('highlight');
+            } else if (totalKwh >= 201) {
+                document.getElementById('q3').value = 200;
+                document.getElementById('r3').value = DIFFS.res.r3.toFixed(2);
+                let rem = totalKwh - 200;
+                if (rem <= 150) { 
+                    document.getElementById('q4').value = rem; 
+                    document.getElementById('row4').classList.add('highlight');
+                } else { 
+                    document.getElementById('q4').value = 150; 
+                    document.getElementById('q5').value = rem - 150; 
+                    document.getElementById('row5').classList.add('highlight');
+                }
+            } else if (totalKwh > 100) {
+                document.getElementById('q1').value = 50; document.getElementById('q2').value = 50;
+                document.getElementById('q3').value = totalKwh - 100;
+                document.getElementById('row3').classList.add('highlight');
+            } else {
+                let q1 = Math.min(50, totalKwh);
+                document.getElementById('q1').value = q1;
+                document.getElementById('q2').value = totalKwh - q1;
+                document.getElementById(totalKwh > 50 ? 'row2' : 'row1').classList.add('highlight');
+            }
+        } else {
+            // منطق التجاري التراكمي
+            if (totalKwh >= 1001) {
+                document.getElementById('q5').value = totalKwh;
+                document.getElementById('r5').value = (DIFFS.com.r2 + DIFFS.com.r3 + DIFFS.com.r5).toFixed(2);
+                document.getElementById('row5').classList.add('highlight');
+            } else if (totalKwh >= 601) {
+                document.getElementById('q4').value = totalKwh;
+                document.getElementById('r4').value = (DIFFS.com.r2 + DIFFS.com.r3).toFixed(2);
+                document.getElementById('row4').classList.add('highlight');
+            } else if (totalKwh >= 251) {
+                document.getElementById('q3').value = totalKwh;
+                document.getElementById('r3').value = (DIFFS.com.r2 + DIFFS.com.r3).toFixed(2);
+                document.getElementById('row3').classList.add('highlight');
+            } else if (totalKwh >= 101) {
+                document.getElementById('q2').value = totalKwh;
+                document.getElementById('r2').value = DIFFS.com.r2.toFixed(2);
+                document.getElementById('row2').classList.add('highlight');
+            } else {
+                document.getElementById('q1').value = totalKwh;
+                document.getElementById('row1').classList.add('highlight');
+            }
+        }
+
+        let totalInvoice = 0;
+        for (let i = 1; i <= rowsCount; i++) {
+            let q = Number(document.getElementById(`q${i}`).value) || 0;
+            let p = Number(document.getElementById(`p${i}`).value) || 0;
+            let s = Number(document.getElementById(`s${i}`).value) || 0;
+            let r = Number(document.getElementById(`r${i}`).value) || 0;
+            if (q > 0 || r > 0) {
+                let t = (q * p) + s + r;
+                document.getElementById(`t${i}`).value = t.toFixed(2);
+                totalInvoice += t;
+            }
+        }
+        document.getElementById('totmoney').value = totalInvoice.toFixed(2);
+        document.getElementById('totmoneymeter').value = (totalInvoice + balance).toFixed(2);
+    }
+
+    window.onload = initTable;
+</script>
+</body>
+</html>

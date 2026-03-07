@@ -1,0 +1,23 @@
+CTR+shift+R    ** urgent
+
+https://ndedcsmartmeter.web.app/
+
+activate google maps in smart meter
+
+
+Go to the Google Cloud Console.
+Create a new project (or select an existing one).
+Go to navigation menu list in the top left near Google Cloud
+Choose google Maps
+Choose Key and credentials
+Search for API keys
+Click on Show key
+Take copy
+Then put it in the adress after the --> key=
+Replace AIzaSyAqZ2UkE-shyD7N0OGbZ4vD2JGXg5ir3y4 in your HTML file with your new key.
+
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDl96h-6fqtJh5psKqT8vB5bTEay_8-BHg"></script>
+
+
+

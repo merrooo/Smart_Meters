@@ -1,0 +1,55 @@
+ <option>هندسة شمال دمياط</option>
+                        <option>هندسة جنوب دمياط</option>
+                        <option>هندسة عزبة البرج</option>
+                        <option>هندسة كفر سعد</option>
+                        <option>هندسة كفر البطيخ</option>
+                        <option>هندسة راس البر</option>
+                        <option>هندسة دمياط الجديدة</option>
+                        <option>هندسة الزرقا</option>
+                        <option>هندسة فارسكور</option>
+                        <option>هندسة الروضة</option>
+                        <option>هندسة الشعراء</option>
+                        <option>هندسة مدينة شربين</option>
+                        <option>هندسة قري شربين</option>
+                        <option>هندسة دكرنس</option>
+                        <option>هندسة جمصة</option>
+                        <option>هندسة قري بلقاس</option>
+                        <option>هندسة مدينة بلقاس</option>
+                        <option>هندسة الستاموني</option>
+                        <option>هندسة بني عبيد</option>
+                        <option>هندسة منية النصر</option>
+                        <option>هندسة ميت سلسيل</option>
+                        <option>هندسة الجمالية</option>
+                        <option>هندسة قري المنزلة</option>
+                        <option>هندسة مدينة المنزلة</option>
+                        <option>هندسة المطرية</option>
+                        <option>هندسة شرق المنصورة</option>
+                        <option>هندسة غرب المنصورة</option>
+                        <option>هندسة طلخا</option>
+                        <option>هندسة نبروه</option>
+                        <option>هندسة قري المنصورة 1</option>
+                        <option>هندسة قري المنصورة 2</option>
+                        <option>هندسة اجا</option>
+                        <option>هندسة مدينة السنبلاوين</option>
+                        <option>هندسة قري السنبلاوين</option>
+                        <option>هندسة تمي الامديد</option>
+                        <option>هندسة مدينة ميت غمر</option>
+                        <option>هندسة قري ميت غمر</option>
+                        <option>هندسة كوم النور</option>
+                        <option>هندسة مدينة كفر الشيخ</option>
+                        <option>هندسة غرب كفر الشيخ</option>
+                        <option>هندسة شرق كفر الشيخ</option>
+                        <option>هندسة قلين</option>
+                        <option>هندسة قرى سيدي سالم</option>
+                        <option>هندسة مدينة سيدي سالم</option>
+                        <option>هندسة الرياض</option>
+                        <option>هندسة مدينة دسوق</option>
+                        <option>هندسة قرى شمال دسوق</option>
+                        <option>هندسة قرى جنوب دسوق</option>
+                        <option>هندسة فوه</option>
+                        <option>هندسة مطوبس</option>
+                        <option>هندسة مدينة الحامول</option>
+                        <option>هندسة قرى الحامول</option>
+                        <option>هندسة بيلا</option>
+                        <option>هندسة بلطيم</option>
+                        <option>هندسة برج البرلس</option>

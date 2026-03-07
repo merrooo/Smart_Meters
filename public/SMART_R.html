@@ -1,0 +1,803 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>تقرير العدادات الذكية</title>
+  <link rel="stylesheet" type="text/css" href="SMART_R.css" />
+  <!-- Chart.js for visualizations -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div id="pageOverlay">
+    <div id="loadingSpinner"></div>
+  </div>
+
+  <div class="dashboard-header">
+    <h1><i class="fas fa-tachometer-alt"></i> لوحة تحكم العدادات الذكية</h1>
+    <div class="header-meta">
+      <div>التاريخ: <strong id="printDate">—</strong></div>
+      <div><i class="fas fa-chart-line"></i> لوحة التحكم الشاملة</div>
+      <div id="rowCountLabel" class="row-count-label">أجمالى العدادات: 0</div>
+    </div>
+  </div>
+
+  <div class="dashboard-container">
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon teal">
+          <i class="fas fa-bolt"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value" id="totalMeters">0</div>
+          <div class="stat-label">إجمالي العدادات</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon orange">
+          <i class="fas fa-calendar-alt"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value" id="thisWeekCount">0</div>
+          <div class="stat-label">هذا الأسبوع</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <i class="fas fa-map-marker-alt"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value" id="activeAreas">0</div>
+          <div class="stat-label">عدد الهندسات</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon yellow">
+          <i class="fas fa-chart-pie"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value" id="avgPerDay">0</div>
+          <div class="stat-label">متوسط تركيب/يوم</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-section">
+      <div class="section-header">
+        <h2><i class="fas fa-chart-bar"></i> التحليلات والإحصائيات</h2>
+        <div class="chart-controls">
+          <select id="chartFilter" class="filter-select" aria-label="فلتر الرسم البياني">
+            <option value="all">جميع البيانات</option>
+            <option value="week">هذا الأسبوع</option>
+            <option value="month">هذا الشهر</option>
+          </select>
+        </div>
+      </div>
+      <div class="charts-grid">
+        <div class="chart-container">
+          <canvas id="distributionChart"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas id="weeklyChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="filters-section">
+      <h2><i class="fas fa-filter"></i> فلاتر البحث المتقدمة</h2>
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label for="searchSerial"><i class="fas fa-search"></i> بحث بالسيريال</label>
+          <input type="text" id="searchSerial" placeholder="أدخل رقم السيريال" />
+        </div>
+        <div class="filter-group">
+          <label for="filterDisco"><i class="fas fa-sitemap"></i> القطاع</label>
+          <select id="filterDisco">
+            <option value="">جميع القطاعات</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filterDiscodec"><i class="fas fa-cogs"></i> الهندسة</label>
+          <select id="filterDiscodec">
+            <option value="">جميع الهندسات</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filterType"><i class="fas fa-tag"></i> النوع</label>
+          <select id="filterType">
+            <option value="">جميع الأنواع</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="dateFrom"><i class="fas fa-calendar"></i> من تاريخ</label>
+          <input type="date" id="dateFrom" />
+        </div>
+        <div class="filter-group">
+          <label for="dateTo"><i class="fas fa-calendar"></i> إلى تاريخ</label>
+          <input type="date" id="dateTo" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button type="button" class="btn btn-primary" id="loadDataBtn">
+        <i class="fas fa-sync-alt"></i> تحديث البيانات
+      </button>
+      <button type="button" class="btn btn-success" id="exportExcelBtn">
+        <i class="fas fa-file-excel"></i> تصدير إلى Excel
+      </button>
+      <button type="button" class="btn btn-warning" id="resetFiltersBtn">
+        <i class="fas fa-broom"></i> مسح الفلاتر
+      </button>
+    </div>
+
+    <!-- Data Table -->
+    <div class="data-section">
+      <div class="section-header">
+        <h2><i class="fas fa-table"></i> تفاصيل العدادات</h2>
+        <div class="table-info">
+          <span id="visibleCount">عرض 0 من 0 سجل</span>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table id="dataTable">
+          <thead>
+            <tr>
+              <th>Serial Num</th>
+              <th>SIM S.Num</th>
+              <th>Badge Number</th>
+              <th>Manufacturer</th>
+              <th>Model</th>
+              <th>EEHC Unified code</th>
+              <th>Facility Description</th>
+              <th>Disco</th>
+              <th>Disco Section</th>
+              <th>Disco Branch</th>
+              <th>منطقة</th>
+              <th>Losses Area</th>
+              <th>Device function</th>
+              <th>Distribution Facility</th>
+              <th>Installation Date</th>
+              <th>ADDRESS4</th>
+              <th>TYPE</th>
+              <th>Latitude(Y-North)</th>
+              <th>Longitude(X-Est)</th>
+              <th>DivisionCode</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- سيتم ملؤه ديناميكياً -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="pagination-container">
+    <button type="button" id="prevBtn" onclick="changePage(-1)">
+      <i class="fas fa-chevron-left"></i> السابق
+    </button>
+    <div id="pageNumbers"></div>
+    <button type="button" id="nextBtn" onclick="changePage(1)">
+      التالي <i class="fas fa-chevron-right"></i>
+    </button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      get,
+    } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyABeLySOk_10XjaHSUjkfnR8f3HSTFkEYU",
+      authDomain: "ndedc-smartmeter.firebaseapp.com",
+      projectId: "ndedc-smartmeter",
+      storageBucket: "ndedc-smartmeter.appspot.com",
+      messagingSenderId: "557422247352",
+      appId: "1:557422247352:web:824d4f96affd7bbb0fa34d",
+      measurementId: "G-3DCP87C92Y",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    console.log("Firebase initialized successfully!");
+
+    // Elements
+    const tbody = document.querySelector("#dataTable tbody");
+    const searchSerialInput = document.getElementById("searchSerial");
+    const printDateEl = document.getElementById("printDate");
+    const loadDataBtn = document.getElementById("loadDataBtn");
+    const exportExcelBtn = document.getElementById("exportExcelBtn");
+    const resetFiltersBtn = document.getElementById("resetFiltersBtn");
+    const chartFilter = document.getElementById("chartFilter");
+
+    // Chart instances
+    let distributionChart = null;
+    let weeklyChart = null;
+
+    // Global State
+    let allData = [];
+    let filteredData = [];
+    let currentPage = 1;
+    const rowsPerPage = 5;
+
+    // Set today's date
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    printDateEl.textContent = `${yyyy}-${mm}-${dd}`;
+
+    // Helper functions
+    function showNotification(message, type = "success") {
+      const oldNotification = document.querySelector(".notification");
+      if (oldNotification) oldNotification.remove();
+
+      const notification = document.createElement("div");
+      notification.className = `notification ${type}`;
+      notification.innerHTML = `
+                <i class="fas fa-${type === "success" ? "check-circle" : type === "error" ? "times-circle" : "info-circle"}"></i>
+                <span>${message}</span>
+            `;
+      document.body.appendChild(notification);
+
+      setTimeout(() => notification.remove(), 3000);
+    }
+
+    function disablePage() {
+      document.getElementById("pageOverlay").style.display = "flex";
+    }
+
+    function enablePage() {
+      document.getElementById("pageOverlay").style.display = "none";
+    }
+
+    // Load data from Firebase
+    async function loadDataFromFirebase() {
+      try {
+        disablePage();
+
+        const snapshot = await get(ref(db, "SMART"));
+
+        if (!snapshot.exists()) {
+          showNotification("لا توجد بيانات في قاعدة البيانات", "warning");
+          allData = [];
+          updateTable();
+          updateStats();
+          enablePage();
+          return;
+        }
+
+        allData = [];
+        snapshot.forEach((childSnap) => {
+          const data = childSnap.val();
+          allData.push(data);
+        });
+
+        // Update everything
+        updateTable(allData);
+        updateFilters();
+        updateStats();
+        updateCharts();
+
+        showNotification(`تم تحميل ${allData.length} سجل`, "success");
+        enablePage();
+      } catch (error) {
+        console.error("Error loading data:", error);
+        showNotification("خطأ في تحميل البيانات", "error");
+        enablePage();
+      }
+    }
+
+    // Update table with data
+    function updateTable(data) {
+      if (data) {
+        filteredData = data; // This ensures search results are what we paginate
+        currentPage = 1; // Reset to first page on new data
+      }
+
+      const tableBody = document.querySelector("#dataTable tbody");
+      tableBody.innerHTML = "";
+
+      // 1. Calculate Pagination range from filteredData
+      const start = (currentPage - 1) * rowsPerPage;
+      const end = start + rowsPerPage;
+      const paginatedItems = filteredData.slice(start, end);
+
+      // 2. Map data to the Table
+      paginatedItems.forEach((item) => {
+        const tr = document.createElement("tr");
+        const fields = [
+          "serial",
+          "sim",
+          "badge",
+          "manuf",
+          "model",
+          "code1",
+          "facDesc",
+          "disco",
+          "discoSec",
+          "discoBranch",
+          "area",
+          "lossArea",
+          "devFunc",
+          "distFac",
+          "installDate",
+          "addr4",
+          "type",
+          "lat",
+          "lon",
+          "dive",
+        ];
+
+        fields.forEach((field) => {
+          const td = document.createElement("td");
+          td.textContent = item[field] || "";
+          tr.appendChild(td);
+        });
+        tableBody.appendChild(tr);
+      });
+
+      // 3. Update UI Elements
+      updatePagination();
+      updateCounts();
+    }
+
+    // --- Pagination & Navigation ---
+    function updatePagination() {
+      const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+      const container = document.getElementById("pageNumbers");
+      container.innerHTML = "";
+
+      const prevBtn = document.getElementById("prevBtn");
+      const nextBtn = document.getElementById("nextBtn");
+
+      if (prevBtn) prevBtn.disabled = currentPage === 1;
+      if (nextBtn) nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+
+      for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+          const btn = document.createElement("button");
+          btn.textContent = i;
+          btn.className = i === currentPage ? "active" : "";
+          btn.onclick = () => { currentPage = i; updateTable(); }; // Will use existing filteredData
+          container.appendChild(btn);
+        }
+      }
+    }
+
+    window.changePage = (dir) => {
+      const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+      const target = currentPage + dir;
+      if (target >= 1 && target <= totalPages) {
+        currentPage = target;
+        updateTable(); // Will use existing filteredData
+      }
+    };
+
+    // Update statistics
+    function updateStats() {
+      // Total meters
+      document.getElementById("totalMeters").textContent = allData.length;
+
+      // This week count
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      const thisWeekCount = allData.filter((item) => {
+        if (!item.installDate) return false;
+        const [day, month, year] = item.installDate.split("/").map(Number);
+        const installDate = new Date(year, month - 1, day);
+        return installDate >= oneWeekAgo;
+      }).length;
+      document.getElementById("thisWeekCount").textContent = thisWeekCount;
+
+      // Active areas
+      const areas = new Set(
+        allData.map((item) => item.discoBranch).filter(Boolean),
+      );
+      document.getElementById("activeAreas").textContent = areas.size;
+
+      // Average per day
+      const firstDate = allData.reduce((earliest, item) => {
+        if (!item.installDate) return earliest;
+        const [day, month, year] = item.installDate.split("/").map(Number);
+        const date = new Date(year, month - 1, day);
+        return earliest ? (date < earliest ? date : earliest) : date;
+      }, null);
+
+      let avgPerDay = 0;
+      if (firstDate) {
+        const daysDiff = Math.ceil(
+          (today - firstDate) / (1000 * 60 * 60 * 24),
+        );
+        avgPerDay =
+          daysDiff > 0
+            ? (allData.length / daysDiff).toFixed(1)
+            : allData.length;
+      }
+      document.getElementById("avgPerDay").textContent = avgPerDay;
+    }
+
+    // Update charts
+    function updateCharts() {
+      updateDistributionChart();
+      updateWeeklyChart();
+    }
+
+    function updateDistributionChart() {
+      const ctx = document
+        .getElementById("distributionChart")
+        .getContext("2d");
+
+      // Group by Disco Section
+      const sectionData = {};
+      allData.forEach((item) => {
+        const section = item.discoSec || "غير محدد";
+        sectionData[section] = (sectionData[section] || 0) + 1;
+      });
+
+      const labels = Object.keys(sectionData);
+      const data = Object.values(sectionData);
+
+      // Destroy existing chart
+      if (distributionChart) {
+        distributionChart.destroy();
+      }
+
+      distributionChart = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              data: data,
+              backgroundColor: [
+                "#FF6384",
+                "#36A2EB",
+                "#FFCE56",
+                "#4BC0C0",
+                "#9966FF",
+                "#FF9F40",
+                "#FF6384",
+                "#C9CBCF",
+              ],
+              borderWidth: 2,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: "bottom",
+              rtl: true,
+            },
+            title: {
+              display: true,
+              text: "توزيع العدادات حسب القطاع",
+              font: {
+                size: 16,
+                family: "Cairo",
+              },
+            },
+          },
+        },
+      });
+    }
+
+    function updateWeeklyChart() {
+      const ctx = document.getElementById("weeklyChart").getContext("2d");
+
+      // Get last 4 weeks data
+      const weeklyData = [0, 0, 0, 0];
+      const weekLabels = [
+        "الأسبوع الماضي",
+        "الأسبوع قبل الماضي",
+        "قبل أسبوعين",
+        "قبل ثلاثة أسابيع",
+      ];
+
+      allData.forEach((item) => {
+        if (!item.installDate) return;
+
+        const [day, month, year] = item.installDate.split("/").map(Number);
+        const installDate = new Date(year, month - 1, day);
+        const daysDiff = Math.floor(
+          (today - installDate) / (1000 * 60 * 60 * 24),
+        );
+
+        if (daysDiff <= 7) weeklyData[0]++;
+        else if (daysDiff <= 14) weeklyData[1]++;
+        else if (daysDiff <= 21) weeklyData[2]++;
+        else if (daysDiff <= 28) weeklyData[3]++;
+      });
+
+      // Destroy existing chart
+      if (weeklyChart) {
+        weeklyChart.destroy();
+      }
+
+      weeklyChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: weekLabels,
+          datasets: [
+            {
+              label: "عدد العدادات",
+              data: weeklyData,
+              backgroundColor: "#3498db",
+              borderColor: "#2980b9",
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1,
+              },
+            },
+          },
+          plugins: {
+            legend: {
+              display: false,
+            },
+            title: {
+              display: true,
+              text: "تركيب العدادات خلال الأسابيع الأربعة الماضية",
+              font: {
+                size: 16,
+                family: "Cairo",
+              },
+            },
+          },
+        },
+      });
+    }
+
+    // Update filters dropdowns
+    function updateFilters() {
+      updateFilterDropdown("filterDisco", "discoSec");
+      updateFilterDropdown("filterDiscodec", "discoBranch");
+      updateFilterDropdown("filterType", "type");
+    }
+
+    function updateFilterDropdown(selectId, field) {
+      const select = document.getElementById(selectId);
+      const options = new Set();
+
+      allData.forEach((item) => {
+        if (item[field]) {
+          options.add(item[field]);
+        }
+      });
+
+      // Keep current selection
+      const currentValue = select.value;
+      select.innerHTML = '<option value="">جميع ' + field + "</option>";
+
+      options.forEach((option) => {
+        const optionEl = document.createElement("option");
+        optionEl.value = option;
+        optionEl.textContent = option;
+        select.appendChild(optionEl);
+      });
+
+      // Restore selection if still valid
+      if (options.has(currentValue)) {
+        select.value = currentValue;
+      }
+    }
+
+    // Apply filters
+    function applyFilters() {
+      let filtered = [...allData];
+
+      // Serial filter
+      const serialQuery = searchSerialInput.value.trim().toLowerCase();
+      if (serialQuery) {
+        filtered = filtered.filter(
+          (item) =>
+            item.serial && item.serial.toLowerCase().includes(serialQuery),
+        );
+      }
+
+      // Dropdown filters
+      const filters = {
+        discoSec: document.getElementById("filterDisco").value,
+        discoBranch: document.getElementById("filterDiscodec").value,
+        type: document.getElementById("filterType").value,
+      };
+
+      Object.entries(filters).forEach(([field, value]) => {
+        if (value) {
+          filtered = filtered.filter((item) => item[field] === value);
+        }
+      });
+
+      // Date filters
+      const dateFrom = document.getElementById("dateFrom").value;
+      const dateTo = document.getElementById("dateTo").value;
+
+      if (dateFrom || dateTo) {
+        filtered = filtered.filter((item) => {
+          if (!item.installDate) return false;
+
+          const [day, month, year] = item.installDate.split("/").map(Number);
+          const installDate = new Date(year, month - 1, day);
+
+          if (dateFrom && installDate < new Date(dateFrom)) return false;
+          if (dateTo && installDate > new Date(dateTo)) return false;
+
+          return true;
+        });
+      }
+
+      // Update table with filtered data
+      updateTable(filtered); // Pass filtered data to reset and paginate
+    }
+
+    // Update counts
+    function updateCounts() {
+      const visibleCount = filteredData.length;
+      const totalCount = allData.length;
+
+      document.getElementById("rowCountLabel").textContent =
+        `أجمالى العدادات: ${totalCount}`;
+      document.getElementById("visibleCount").textContent =
+        `عرض ${visibleCount} من ${totalCount} سجل`;
+    }
+
+    // Export to Excel
+    function exportToExcel() {
+      if (filteredData.length === 0) {
+        showNotification("لا توجد بيانات للتصدير", "warning");
+        return;
+      }
+
+      try {
+        disablePage();
+
+        // Prepare data for export
+        const exportData = filteredData.map((item) => ({
+          "Serial Num": item.serial || "",
+          "SIM S.Num": item.sim || "",
+          "Badge Number": item.badge || "",
+          Manufacturer: item.manuf || "",
+          Model: item.model || "",
+          "EEHC Unified code": item.code1 || "",
+          "Facility Description": item.facDesc || "",
+          Disco: item.disco || "",
+          "Disco Section": item.discoSec || "",
+          "Disco Branch": item.discoBranch || "",
+          منطقة: item.area || "",
+          "Losses Area": item.lossArea || "",
+          "Device function": item.devFunc || "",
+          "Distribution Facility": item.distFac || "",
+          "Installation Date": item.installDate || "",
+          ADDRESS4: item.addr4 || "",
+          TYPE: item.type || "",
+          "Latitude(y)": item.lat || "",
+          "Longitude(x)": item.lon || "",
+          "DivisionCode": item.dive || "",
+        }));
+
+        // Create worksheet
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Smart Meters");
+
+        // Auto-size columns
+        const wscols = [
+          { wch: 15 },
+          { wch: 20 },
+          { wch: 15 },
+          { wch: 15 },
+          { wch: 12 },
+          { wch: 25 },
+          { wch: 30 },
+          { wch: 15 },
+          { wch: 20 },
+          { wch: 20 },
+          { wch: 15 },
+          { wch: 20 },
+          { wch: 20 },
+          { wch: 25 },
+          { wch: 15 },
+          { wch: 25 },
+          { wch: 10 },
+          { wch: 15 },
+          { wch: 15 },
+        ];
+        worksheet["!cols"] = wscols;
+
+        // Generate filename
+        const date = new Date();
+        const fileName = `عدادات_ذكية_${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}.xlsx`;
+
+        // Save file
+        XLSX.writeFile(workbook, fileName);
+
+        showNotification(
+          `تم تصدير ${filteredData.length} سجل إلى Excel`,
+          "success",
+        );
+        enablePage();
+      } catch (error) {
+        console.error("Error exporting to Excel:", error);
+        showNotification("خطأ في التصدير", "error");
+        enablePage();
+      }
+    }
+
+    // Reset all filters
+    function resetFilters() {
+      searchSerialInput.value = "";
+      document.getElementById("filterDisco").value = "";
+      document.getElementById("filterDiscodec").value = "";
+      document.getElementById("filterType").value = "";
+      document.getElementById("dateFrom").value = "";
+      document.getElementById("dateTo").value = "";
+
+      applyFilters();
+      showNotification("تم مسح جميع الفلاتر", "info");
+    }
+
+    // Event Listeners
+    document.addEventListener("DOMContentLoaded", () => {
+      loadDataFromFirebase();
+    });
+
+    loadDataBtn.addEventListener("click", loadDataFromFirebase);
+    exportExcelBtn.addEventListener("click", exportToExcel);
+    resetFiltersBtn.addEventListener("click", resetFilters);
+    chartFilter.addEventListener("change", updateCharts);
+
+    // Filter change listeners
+    searchSerialInput.addEventListener("input", applyFilters);
+    document
+      .getElementById("filterDisco")
+      .addEventListener("change", applyFilters);
+    document
+      .getElementById("filterDiscodec")
+      .addEventListener("change", applyFilters);
+    document
+      .getElementById("filterType")
+      .addEventListener("change", applyFilters);
+    document
+      .getElementById("dateFrom")
+      .addEventListener("change", applyFilters);
+    document
+      .getElementById("dateTo")
+      .addEventListener("change", applyFilters);
+
+    // Auto-refresh every 5 minutes
+    setInterval(() => {
+      loadDataFromFirebase();
+    }, 300000);
+  </script>
+</body>
+
+</html>
