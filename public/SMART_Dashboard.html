@@ -1,0 +1,2652 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Dashboard-Smart Meters</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+         :root {
+     --primary-color: #3498db;
+     --secondary-color: #2ecc71;
+     --danger-color: #e74c3c;
+     --warning-color: #f39c12;
+     --dark-color: #2c3e50;
+     --light-color: #ecf0f1;
+     --gray-color: #95a5a6;
+     --icon-bg: #3498db;
+ }
+
+ * {
+     margin: 0;
+     padding: 0;
+     box-sizing: border-box;
+     font-family: 'Cairo', sans-serif;
+ }
+
+ body {
+     background-color: #f5f7fa;
+     color: #333;
+     direction: rtl;
+     transition: background-color 0.3s ease, color 0.3s ease;
+ }
+
+ /* --- Dark Mode Toggle --- */
+ .dark-toggle {
+     position: relative;
+     display: flex;
+     align-items: center;
+     gap: 8px;
+     cursor: pointer;
+     padding: 8px 12px;
+     border-radius: 8px;
+     transition: background-color 0.3s ease;
+ }
+
+ .dark-toggle:hover {
+     background-color: rgba(0, 0, 0, 0.05);
+ }
+
+ body.dark-mode .dark-toggle:hover {
+     background-color: rgba(255, 255, 255, 0.1);
+ }
+
+ .dark-toggle__input {
+     display: none;
+ }
+
+ .dark-toggle .switch {
+     width: 44px;
+     height: 24px;
+     background: #ccc;
+     border-radius: 12px;
+     position: relative;
+     display: inline-block;
+     transition: background-color 0.3s ease;
+ }
+
+ .dark-toggle__input:checked+.switch {
+     background: #4f46e5;
+ }
+
+ .dark-toggle .switch::after {
+     content: '';
+     position: absolute;
+     width: 20px;
+     height: 20px;
+     background: white;
+     border-radius: 50%;
+     top: 2px;
+     right: 2px;
+     transition: right 0.3s ease;
+ }
+
+ .dark-toggle__input:checked+.switch::after {
+     right: 22px;
+ }
+
+ .dark-toggle .icon {
+     font-size: 18px;
+     min-width: 24px;
+ }
+
+ .dark-toggle:hover .switch {
+     opacity: 0.8;
+ }
+
+ /* Header */
+ .header {
+     background: white;
+     border-radius: 15px;
+     padding: 25px 30px;
+     margin-bottom: 30px;
+     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+ }
+
+ .header-title h1 {
+     color: var(--dark-color);
+     font-size: 28px;
+     margin-bottom: 5px;
+ }
+
+ .header-title p {
+     color: var(--gray-color);
+     font-size: 16px;
+ }
+
+ .header-actions {
+     display: flex;
+     gap: 15px;
+     align-items: center;
+ }
+
+ .btn {
+     padding: 12px 25px;
+     border: none;
+     border-radius: 10px;
+     cursor: pointer;
+     font-weight: 600;
+     font-size: 16px;
+     display: inline-flex;
+     align-items: center;
+     gap: 10px;
+     transition: all 0.3s ease;
+ }
+
+ .btn-primary {
+     background: var(--primary-color);
+     color: white;
+ }
+
+ .btn-primary:hover {
+     background: #2980b9;
+     transform: translateY(-2px);
+ }
+
+ .btn-secondary {
+     background: var(--secondary-color);
+     color: white;
+ }
+
+ .btn-secondary:hover {
+     background: #27ae60;
+     transform: translateY(-2px);
+ }
+
+ .btn-outline {
+     background: transparent;
+     border: 2px solid var(--primary-color);
+     color: var(--primary-color);
+ }
+
+ .btn-outline:hover {
+     background: var(--primary-color);
+     color: white;
+ }
+
+ /* Stats Cards - الإصدار المعدل */
+ .stats-grid {
+     display: grid;
+     grid-template-columns: repeat(4, 1fr);
+     gap: 25px;
+     margin-bottom: 40px;
+ }
+
+ @media (max-width: 1200px) {
+     .stats-grid {
+         grid-template-columns: repeat(2, 1fr);
+     }
+ }
+
+ @media (max-width: 768px) {
+     .stats-grid {
+         grid-template-columns: 1fr;
+     }
+ }
+
+ .stat-card {
+     background: white;
+     border-radius: 15px;
+     padding: 25px;
+     display: flex;
+     align-items: center;
+     gap: 20px;
+     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+     transition: transform 0.3s ease;
+     border-right: 5px solid var(--primary-color);
+ }
+
+ .stat-card-wide {
+     grid-column: span 2;
+ }
+
+.stat-card.highlight {
+    border: 2px solid #3498db;
+}
+
+ .stat-card.warning {
+     border: 2px solid #f39c12;
+ }
+
+ .stat-card.critical {
+     border: 2px solid #e74c3c;
+ }
+
+ .stat-card:hover {
+     transform: translateY(-5px);
+ }
+
+.stat-icon-primary {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+}
+
+ .stat-icon-purple {
+     background: linear-gradient(135deg, #9b59b6, #8e44ad);
+ }
+
+ .stat-icon-teal {
+     background: linear-gradient(135deg, #1abc9c, #16a085);
+ }
+
+ .stat-icon-orange {
+     background: linear-gradient(135deg, #f39c12, #e67e22);
+ }
+
+ .stat-icon-green {
+     background: linear-gradient(135deg, #2ecc71, #27ae60);
+ }
+
+ .stat-icon {
+     width: 70px;
+     height: 70px;
+     border-radius: 15px;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     font-size: 30px;
+     color: white;
+     margin-bottom: 0;
+ }
+
+ .stat-content h3 {
+     font-size: 32px;
+     color: var(--dark-color);
+     margin-bottom: 5px;
+ }
+
+ .stat-content p {
+     color: var(--gray-color);
+     font-size: 16px;
+     margin: 0;
+ }
+
+ /* Progress bars for stats */
+ .progress-container {
+     margin-top: 10px;
+ }
+
+ .progress-label {
+     display: flex;
+     justify-content: space-between;
+     font-size: 12px;
+     color: var(--gray-color);
+     margin-bottom: 5px;
+ }
+
+ .progress-bar {
+     height: 6px;
+     background-color: #ecf0f1;
+     border-radius: 3px;
+     overflow: hidden;
+ }
+
+ .progress-fill {
+     height: 100%;
+     background: linear-gradient(90deg, var(--secondary-color), #27ae60);
+     border-radius: 3px;
+     transition: width 0.5s ease;
+ }
+
+ .progress-fill.warning {
+     background: linear-gradient(90deg, #f39c12, #e67e22);
+ }
+
+ .progress-fill.critical {
+     background: linear-gradient(90deg, #e74c3c, #c0392b);
+ }
+
+ .target-info {
+     font-size: 12px;
+     color: var(--gray-color);
+     margin-top: 5px;
+ }
+
+ /* Alert Banner */
+.alert-banner {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    display: none;
+    animation: pulse 3s ease-in-out 2;
+}
+
+ .alert-banner.show {
+     display: flex;
+     justify-content: space-between;
+     align-items: flex-start;
+     gap: 12px;
+ }
+
+.alert-content {
+    flex: 1;
+}
+
+.alert-summary {
+    font-size: 14px;
+    margin: 8px 0 10px;
+    opacity: 0.95;
+}
+
+.alert-table-wrap {
+    max-height: 220px;
+    overflow: auto;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+}
+
+.alert-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.alert-table th,
+.alert-table td {
+    padding: 8px 10px;
+    text-align: right;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    white-space: nowrap;
+}
+
+.alert-table th {
+    position: sticky;
+    top: 0;
+    background: rgba(0, 0, 0, 0.2);
+    font-weight: 700;
+}
+
+.alert-table tr:last-child td {
+    border-bottom: none;
+}
+
+ .alert-close {
+     background: none;
+     border: none;
+     color: white;
+     font-size: 20px;
+     cursor: pointer;
+     flex-shrink: 0;
+     margin-top: 2px;
+ }
+
+ @keyframes pulse {
+     0% {
+         box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+     }
+
+     70% {
+         box-shadow: 0 0 0 10px rgba(231, 76, 60, 0);
+     }
+
+     100% {
+         box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+     }
+ }
+
+ .ranking-header {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     margin-bottom: 15px;
+ }
+
+ .ranking-item {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     padding: 10px 0;
+     border-bottom: 1px solid #eee;
+ }
+
+ .ranking-item:last-child {
+     border-bottom: none;
+ }
+
+ .ranking-info {
+     display: flex;
+     align-items: center;
+     gap: 10px;
+ }
+
+ .ranking-number {
+     background: #3498db;
+     color: white;
+     width: 30px;
+     height: 30px;
+     border-radius: 50%;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     font-weight: bold;
+ }
+
+ .ranking-critical .ranking-number {
+     background: #e74c3c;
+ }
+
+ .ranking-warning .ranking-number {
+     background: #f39c12;
+ }
+
+ .ranking-good .ranking-number {
+     background: #2ecc71;
+ }
+
+ .ranking-percentage {
+     font-weight: bold;
+     font-size: 14px;
+ }
+
+ .ranking-critical .ranking-percentage {
+     color: #e74c3c;
+ }
+
+ .ranking-warning .ranking-percentage {
+     color: #f39c12;
+ }
+
+.ranking-good .ranking-percentage {
+    color: #2ecc71;
+}
+
+ /* Chart Tabs */
+ .chart-tabs {
+     display: flex;
+     gap: 10px;
+     margin-bottom: 20px;
+     border-bottom: 1px solid #eee;
+     padding-bottom: 10px;
+ }
+
+ .chart-tab {
+     padding: 8px 20px;
+     background: #f8f9fa;
+     border: 1px solid #dee2e6;
+     border-radius: 5px;
+     cursor: pointer;
+     transition: all 0.3s ease;
+ }
+
+ .chart-tab.active {
+     background: #3498db;
+     color: white;
+     border-color: #3498db;
+ }
+
+ .chart-tab:hover {
+     background: #e9ecef;
+ }
+
+ .chart-tab.active:hover {
+     background: #2980b9;
+ }
+
+ .chart-tab-content {
+     display: none;
+ }
+
+ .chart-tab-content.active {
+     display: block;
+ }
+
+ /* Charts Grid */
+ .charts-grid {
+     display: grid;
+     grid-template-columns: repeat(2, 1fr);
+     gap: 25px;
+     margin-bottom: 40px;
+ }
+
+ @media (max-width: 1200px) {
+     .charts-grid {
+         grid-template-columns: 1fr;
+     }
+ }
+
+ .chart-card {
+     background: white;
+     border-radius: 15px;
+     padding: 25px;
+     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+ }
+
+ .chart-header {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     margin-bottom: 25px;
+     flex-wrap: wrap;
+     gap: 10px;
+ }
+
+ .chart-header h3 {
+     color: var(--dark-color);
+     font-size: 20px;
+     margin: 0;
+ }
+
+ .chart-filters {
+     display: flex;
+     gap: 10px;
+     flex-wrap: wrap;
+ }
+
+.filter-select {
+    padding: 8px 15px;
+    border: 2px solid var(--primary-color);
+    border-radius: 8px;
+    background: white;
+    color: var(--dark-color);
+    font-family: 'Cairo';
+    cursor: pointer;
+    min-width: 150px;
+}
+
+.header-page-select {
+    min-width: 220px;
+    padding: 12px 15px;
+    font-size: 15px;
+}
+
+ .chart-container {
+     height: 300px;
+     position: relative;
+ }
+
+ /* Recent Activity */
+ .activity-card {
+     background: white;
+     border-radius: 15px;
+     padding: 25px;
+     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+     margin-bottom: 30px;
+ }
+
+ .activity-header {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     margin-bottom: 25px;
+ }
+
+ .activity-header h3 {
+     color: var(--dark-color);
+     font-size: 20px;
+ }
+
+ .activity-list {
+     list-style: none;
+     max-height: 300px;
+     overflow-y: auto;
+ }
+
+ .activity-item {
+     display: flex;
+     align-items: center;
+     padding: 20px;
+     border-bottom: 1px solid #eee;
+     gap: 20px;
+     transition: background-color 0.3s ease;
+ }
+
+ .activity-item:hover {
+     background-color: #f8f9fa;
+ }
+
+ .activity-item:last-child {
+     border-bottom: none;
+ }
+
+ .activity-icon {
+     width: 50px;
+     height: 50px;
+     border-radius: 12px;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     font-size: 20px;
+     color: white;
+     background: var(--icon-bg, #3498db);
+ }
+
+ .no-activity-message {
+     color: var(--gray-color);
+     text-align: center;
+     width: 100%;
+ }
+
+ .activity-content {
+     flex: 1;
+ }
+
+ .activity-content h4 {
+     color: var(--dark-color);
+     margin-bottom: 5px;
+     font-size: 16px;
+ }
+
+ .activity-content p {
+     color: var(--gray-color);
+     font-size: 14px;
+     margin-bottom: 3px;
+ }
+
+ .activity-details {
+     display: flex;
+     gap: 15px;
+     margin-top: 5px;
+ }
+
+ .activity-detail {
+     display: flex;
+     align-items: center;
+     gap: 5px;
+     font-size: 12px;
+     color: var(--gray-color);
+ }
+
+/* Loading Overlay */
+.loading-overlay {
+     position: fixed;
+     top: 0;
+     left: 0;
+     right: 0;
+     bottom: 0;
+     background: rgba(0, 0, 0, 0.8);
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     z-index: 9999;
+     display: none;
+ }
+
+ .spinner {
+     width: 70px;
+     height: 70px;
+     border: 5px solid #f3f3f3;
+     border-top: 5px solid var(--primary-color);
+     border-radius: 50%;
+     animation: spin 1s linear infinite;
+ }
+
+ @keyframes spin {
+     0% {
+         transform: rotate(0deg);
+     }
+
+     100% {
+         transform: rotate(360deg);
+     }
+ }
+
+ /* Notification */
+ .notification {
+     position: fixed;
+     top: 30px;
+     left: 30px;
+     padding: 20px 30px;
+     border-radius: 10px;
+     color: white;
+     font-weight: 600;
+     z-index: 1000;
+     display: none;
+     animation: slideIn 0.3s ease;
+ }
+
+ .notification.success {
+     background: var(--secondary-color);
+ }
+
+ .notification.error {
+     background: var(--danger-color);
+ }
+
+ .notification.info {
+     background: var(--primary-color);
+ }
+
+ @keyframes slideIn {
+     from {
+         transform: translateX(100%);
+         opacity: 0;
+     }
+
+     to {
+         transform: translateX(0);
+         opacity: 1;
+     }
+ }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+ }
+
+ ::-webkit-scrollbar-track {
+     background: #f1f1f1;
+     border-radius: 10px;
+ }
+
+ ::-webkit-scrollbar-thumb {
+     background: var(--primary-color);
+     border-radius: 10px;
+ }
+
+ ::-webkit-scrollbar-thumb:hover {
+     background: #2980b9;
+ }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .chart-filters {
+        flex-direction: column;
+    }
+
+     .filter-select {
+         min-width: 100%;
+     }
+
+}
+
+ @media (max-width: 576px) {
+     .header {
+         flex-direction: column;
+         gap: 20px;
+         text-align: center;
+     }
+
+     .header-actions {
+         flex-direction: column;
+         width: 100%;
+     }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .header-page-select {
+        width: 100%;
+    }
+
+    .activity-item {
+        flex-direction: column;
+        text-align: center;
+    }
+
+     .activity-details {
+         justify-content: center;
+     }
+
+ }
+
+/* ================= DARK MODE ================= */
+body.dark-mode {
+     background-color: #0f1419;
+     color: #dbeafe;
+ }
+
+ body.dark-mode .header {
+     background: #1a1f2e;
+     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+ }
+
+ body.dark-mode .header-title h1 {
+     color: #dbeafe;
+ }
+
+ body.dark-mode .header-title p {
+     color: #cbd5e1;
+ }
+
+ body.dark-mode .btn-primary {
+     background: #3b82f6;
+ }
+
+ body.dark-mode .btn-primary:hover {
+     background: #1e40af;
+ }
+
+ body.dark-mode .btn-secondary {
+     background: #10b981;
+ }
+
+ body.dark-mode .btn-secondary:hover {
+     background: #059669;
+ }
+
+ body.dark-mode .stat-card {
+     background: #1a1f2e;
+     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+     border-right-color: #3b82f6;
+ }
+
+ body.dark-mode .stat-card.highlight {
+     border-color: #3b82f6;
+ }
+
+ body.dark-mode .stat-card.warning {
+     border-color: #f59e0b;
+ }
+
+ body.dark-mode .stat-card.critical {
+     border-color: #ef4444;
+ }
+
+ body.dark-mode .stat-content h3 {
+     color: #dbeafe;
+ }
+
+ body.dark-mode .stat-content p {
+     color: #cbd5e1;
+ }
+
+ body.dark-mode .ranking-list {
+     color: #dbeafe;
+ }
+
+ body.dark-mode .ranking-header h3 {
+     color: #dbeafe;
+ }
+
+ body.dark-mode .ranking-subtitle {
+     color: #cbd5e1;
+ }
+
+ body.dark-mode .target-info {
+     color: #cbd5e1;
+ }
+
+ body.dark-mode .progress-container {
+     color: #cbd5e1;
+ }
+
+ body.dark-mode .progress-bar {
+     background: rgba(30, 41, 59, 0.7);
+ }
+
+ body.dark-mode .progress-fill {
+     background: linear-gradient(90deg, #3b82f6, #10b981);
+ }
+
+body.dark-mode .chart-card {
+    background: #1a1f2e;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+ }
+
+ body.dark-mode .chart-header h3 {
+     color: #dbeafe;
+ }
+
+ body.dark-mode .filter-select {
+     background: rgba(8, 16, 37, 0.9);
+     color: #dbeafe;
+     border-color: #2d3748;
+ }
+
+ body.dark-mode .filter-select:focus {
+     outline: none;
+     border-color: #3b82f6;
+ }
+
+ body.dark-mode .chart-container {
+     background: rgba(30, 41, 59, 0.5);
+     border-radius: 10px;
+ }
+
+ body.dark-mode .chart-tabs {
+     border-color: #2d3748;
+ }
+
+ body.dark-mode .chart-tab {
+     color: #cbd5e1;
+     border-color: transparent;
+ }
+
+ body.dark-mode .chart-tab.active {
+     color: #dbeafe;
+     border-color: #3b82f6;
+ }
+
+ body.dark-mode .activity-list {
+     background: #1a1f2e;
+     border-color: #2d3748;
+ }
+
+ body.dark-mode .activity-item {
+     border-color: #2d3748;
+ }
+
+ body.dark-mode .activity-content h4 {
+     color: #dbeafe;
+ }
+
+ body.dark-mode .activity-content p {
+     color: #cbd5e1;
+ }
+
+ body.dark-mode .activity-details {
+     color: #cbd5e1;
+ }
+
+ body.dark-mode .notification {
+     background: #1a1f2e;
+     color: #dbeafe;
+     border-color: #2d3748;
+ }
+
+ body.dark-mode .alert-banner {
+     background: rgba(239, 68, 68, 0.1);
+     border-color: #ef4444;
+ }
+
+body.dark-mode .alert-banner h4 {
+    color: #fca5a5;
+}
+
+body.dark-mode .alert-summary {
+    color: #cbd5e1;
+}
+
+body.dark-mode .alert-table-wrap {
+    background: rgba(2, 6, 23, 0.45);
+}
+
+ body.dark-mode .loading-overlay {
+     background: rgba(15, 20, 25, 0.95);
+ }
+
+body.dark-mode .spinner {
+    border-color: rgba(59, 130, 246, 0.2);
+    border-top-color: #3b82f6;
+}
+        </style>
+
+</head>
+
+<body>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Alert Banner for Delayed Handsa -->
+        <div class="alert-banner" id="alertBanner">
+            <div class="alert-content">
+                <h4><i class="fas fa-exclamation-triangle"></i> تنبيه: هناك هندسات متأخرة عن الهدف اليومي</h4>
+                <div class="alert-summary" id="alertSummary"></div>
+                <div id="alertMessage"></div>
+            </div>
+            <button class="alert-close" id="closeAlertBtn" type="button" aria-label="Close alert">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Header -->
+        <div class="header">
+
+            <div class="header-title">
+                <h1>لوحة تحكم Smart Meters</h1>
+                <p id="currentDate">--/--/----</p>
+            </div>
+
+            <div class="header-actions">
+                 <button class="btn btn-secondary" onclick="window.location.href='index.html'">
+                    الصفحة الرئيسية
+                </button>
+
+                <button class="btn btn-primary" id="refreshBtn">
+                    <i class="fas fa-sync-alt"></i>
+                    تحديث البيانات
+                </button>
+                <label class="dark-toggle" title="Toggle dark mode">
+                    <input id="darkToggle" class="dark-toggle__input" type="checkbox" aria-label="Dark mode toggle"
+                        role="switch" aria-checked="false" />
+                    <span class="switch"></span>
+                    <span class="icon">🌙</span>
+                </label>
+                <button class="btn btn-secondary" id="exportBtn">
+                    <i class="fas fa-file-export"></i>
+                    تصدير تقرير
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-primary">
+                    <i class="fas fa-microchip"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="totalMeters">0</h3>
+                    <p>إجمالي العدادات</p>
+                </div>
+            </div>
+
+            <!-- ترتيب الهندسات تلقائيًا -->
+            <div class="stat-card stat-card-wide">
+                <div class="stat-content">
+                    <div class="ranking-header">
+                        <h3>ترتيب الهندسات</h3>
+                        <span class="ranking-subtitle">(الأقل تركيبًا هذا الأسبوع)</span>
+                    </div>
+                    <div class="ranking-list" id="rankingList">
+                        <!-- سيتم ملؤه ديناميكياً -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-content">
+                    <h3 id="totalWeekMeters">0</h3>
+                    <p>العدادات المضافة هذا الأسبوع</p>
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>التقدم</span>
+                            <span id="weekProgressPercentage">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="weekProgressFill"></div>
+                        </div>
+                    </div>
+                    <div class="target-info">
+                        <span>المستهدف: 30 أسبوعياً (5 يومياً)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- بطاقة جديدة: إحصائيات القطاع -->
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-purple">
+                    <i class="fas fa-sitemap"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="totalDisco">0</h3>
+                    <p>عدد القطاعات</p>
+                </div>
+            </div>
+
+            <!-- بطاقة جديدة: إحصائيات الهندسة -->
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-teal">
+                    <i class="fas fa-cogs"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="totalHandsa">0</h3>
+                    <p>عدد الهندسات</p>
+                </div>
+            </div>
+
+            <!-- بطاقة جديدة: توزيع النوع -->
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-orange">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="typeDistribution">-</h3>
+                    <p>أكثر نوع انتشاراً</p>
+                    <div class="target-info" id="typeInfo"></div>
+                </div>
+            </div>
+
+            <!-- بطاقة جديدة: أعلى هندسة أداء -->
+            <div class="stat-card highlight">
+                <div class="stat-icon stat-icon-green">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="topHandsa">-</h3>
+                    <p>أعلى هندسة أداء</p>
+                    <div class="target-info" id="topHandsaInfo"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- منطقة الرسوم البيانية الرئيسية -->
+        <div class="charts-grid">
+            <!-- رسم بياني 1: توزيع العدادات حسب الهندسة للتركيب الحالي -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>توزيع العدادات حسب الهندسة (التركيب الحالي)</h3>
+                    <div class="chart-filters">
+                        <select id="currentWeekFilter" class="filter-select" aria-label="Current week filter">
+                            <option value="current">الأسبوع الحالي</option>
+                            <option value="last">الأسبوع الماضي</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="currentHandsaChart"></canvas>
+                </div>
+            </div>
+
+            <!-- رسم بياني 2: توزيع النوع للتركيب الحالي -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>توزيع النوع (التركيب الحالي)</h3>
+                    <select id="currentTypeFilter" class="filter-select" aria-label="Current type filter">
+                        <option value="">جميع القطاعات</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="currentTypeChart"></canvas>
+                </div>
+            </div>
+
+            <!-- رسم بياني 3: توزيع الهندسات (جميع الأوقات) -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>توزيع الهندسات (جميع الأوقات)</h3>
+                    <div class="chart-filters">
+                        <select id="allHandsaFilter" class="filter-select" aria-label="All handsa filter">
+                            <option value="">جميع القطاعات</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="allHandsaChart"></canvas>
+                </div>
+            </div>
+
+            <!-- رسم بياني 4: توزيع القطاعات (جميع الأوقات) -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>توزيع القطاعات (جميع الأوقات)</h3>
+                    <div class="chart-filters">
+                        <select id="allDiscoFilter" class="filter-select" aria-label="All sectors filter">
+                            <option value="">جميع الهندسات</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="allDiscoChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- منطقة التبويب للرسوم البيانية الإضافية -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3>رسوم بيانية إضافية</h3>
+                <div class="chart-tabs">
+                    <div class="chart-tab active" data-chart="tabHandsaChart">توزيع الهندسات المتقدمة</div>
+                    <div class="chart-tab" data-chart="tabDiscoChart">توزيع القطاعات المتقدم</div>
+                    <div class="chart-tab" data-chart="tabTypeChart">توزيع النوع المتقدم</div>
+                </div>
+            </div>
+
+            <div class="chart-tab-content active" id="tabHandsaChart">
+                <div class="chart-container">
+                    <canvas id="advancedHandsaChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-tab-content" id="tabDiscoChart">
+                <div class="chart-container">
+                    <canvas id="advancedDiscoChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-tab-content" id="tabTypeChart">
+                <div class="chart-container">
+                    <canvas id="advancedTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="activity-card">
+            <div class="activity-header">
+                <h3>أحدث العدادات المضافة (مرتبة حسب تاريخ التركيب)</h3>
+                <button class="btn btn-outline" id="viewAllBtn">
+                    <i class="fas fa-list"></i>
+                    عرض الكل
+                </button>
+            </div>
+            <ul class="activity-list" id="activityList">
+                <!-- Dynamic content will be loaded here -->
+            </ul>
+        </div>
+    </div>
+    </div>
+
+    <!-- Firebase & Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
+
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyABeLySOk_10XjaHSUjkfnR8f3HSTFkEYU",
+            authDomain: "ndedc-smartmeter.firebaseapp.com",
+            databaseURL: "https://ndedc-smartmeter-default-rtdb.firebaseio.com",
+            projectId: "ndedc-smartmeter",
+            storageBucket: "ndedc-smartmeter.appspot.com",
+            messagingSenderId: "557422247352",
+            appId: "1:557422247352:web:824d4f96affd7bbb0fa34d",
+            measurementId: "G-3DCP87C92Y"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // DOM Elements
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const notification = document.getElementById('notification');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const currentDateEl = document.getElementById('currentDate');
+        const pageNavigator = document.getElementById('pageNavigator');
+        const viewAllBtn = document.getElementById('viewAllBtn');
+        const alertBanner = document.getElementById('alertBanner');
+        const alertSummary = document.getElementById('alertSummary');
+        const alertMessage = document.getElementById('alertMessage');
+        const closeAlertBtn = document.getElementById('closeAlertBtn');
+        const rankingList = document.getElementById('rankingList');
+        const activityList = document.getElementById('activityList');
+        const chartTabs = document.querySelectorAll('.chart-tab');
+        const chartTabContents = document.querySelectorAll('.chart-tab-content');
+        const currentWeekFilter = document.getElementById('currentWeekFilter');
+        const currentTypeFilter = document.getElementById('currentTypeFilter');
+        const allHandsaFilter = document.getElementById('allHandsaFilter');
+        const allDiscoFilter = document.getElementById('allDiscoFilter');
+
+        // Global variables
+        let allData = [];
+        let currentHandsaChart = null;
+        let currentTypeChart = null;
+        let allHandsaChart = null;
+        let allDiscoChart = null;
+        let advancedHandsaChart = null;
+        let advancedDiscoChart = null;
+        let advancedTypeChart = null;
+        let lastAlertHtml = '';
+
+        // Targets per engineering
+        const WEEKLY_TARGET_METERS = 30;
+        const DAILY_TARGET_METERS = 5;
+
+        // Set current date
+        function updateCurrentDate() {
+            const now = new Date();
+            const options = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                timeZone: 'Africa/Cairo'
+            };
+            currentDateEl.textContent = now.toLocaleDateString('ar-EG', options);
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        // Helper function to parse installation date across common formats
+        function parseDate(dateString) {
+            if (!dateString) return null;
+
+            try {
+                if (dateString instanceof Date) {
+                    return isNaN(dateString.getTime()) ? null : dateString;
+                }
+
+                if (typeof dateString === 'number') {
+                    const fromNumber = new Date(dateString < 1e12 ? dateString * 1000 : dateString);
+                    return isNaN(fromNumber.getTime()) ? null : fromNumber;
+                }
+
+                const raw = String(dateString).trim();
+                if (!raw) return null;
+
+                // Handle explicit DD/MM/YYYY or DD-MM-YYYY with optional time
+                const dmyMatch = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+                if (dmyMatch) {
+                    const day = parseInt(dmyMatch[1], 10);
+                    const month = parseInt(dmyMatch[2], 10) - 1;
+                    const yearNum = parseInt(dmyMatch[3], 10);
+                    const year = yearNum < 100 ? 2000 + yearNum : yearNum;
+                    const hour = parseInt(dmyMatch[4] || '0', 10);
+                    const minute = parseInt(dmyMatch[5] || '0', 10);
+                    const second = parseInt(dmyMatch[6] || '0', 10);
+                    const dmyDate = new Date(year, month, day, hour, minute, second);
+                    return isNaN(dmyDate.getTime()) ? null : dmyDate;
+                }
+
+                // Handle ISO-like YYYY-MM-DD and datetime values
+                const isoDate = new Date(raw);
+                if (!isNaN(isoDate.getTime())) return isoDate;
+
+                // Retry after replacing slash with dash for loose browser parsing
+                const normalized = raw.replace(/\//g, '-');
+                const retryDate = new Date(normalized);
+                return isNaN(retryDate.getTime()) ? null : retryDate;
+            } catch (e) {
+                console.error('Error parsing date:', dateString, e);
+                return null;
+            }
+        }
+
+        // Get current week data (Sunday to Saturday - Egyptian work week)
+        function getCurrentWeekData() {
+            const now = new Date();
+
+            // Set to Egypt timezone
+            const egyptNow = new Date(now.toLocaleString('en-US', { timeZone: 'Africa/Cairo' }));
+
+            // Get current day of week (0 = Sunday, 1 = Monday, etc.)
+            const day = egyptNow.getDay();
+
+            // Calculate start of week (Sunday)
+            const startOfWeek = new Date(egyptNow);
+            const diff = day; // Since day 0 is Sunday, diff = 0 means today is Sunday
+            startOfWeek.setDate(egyptNow.getDate() - diff);
+            startOfWeek.setHours(0, 0, 0, 0);
+
+            // Calculate end of week (Saturday)
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            endOfWeek.setHours(23, 59, 59, 999);
+
+            console.log('Current week (Egypt time):',
+                startOfWeek.toLocaleDateString('en-GB'),
+                'to',
+                endOfWeek.toLocaleDateString('en-GB')
+            );
+            console.log('Today:', egyptNow.toLocaleDateString('en-GB'));
+
+            return { startDate: startOfWeek, endDate: endOfWeek };
+        }
+        // Get last week data
+        function getLastWeekData() {
+            const now = new Date();
+            const lastWeek = new Date(now);
+            lastWeek.setDate(now.getDate() - 7);
+
+            const day = lastWeek.getDay();
+            const startOfWeek = new Date(lastWeek);
+            const diff = day === 0 ? -6 : 1 - day;
+            startOfWeek.setDate(lastWeek.getDate() + diff);
+            startOfWeek.setHours(0, 0, 0, 0);
+
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            endOfWeek.setHours(23, 59, 59, 999);
+
+            console.log('Last week:', startOfWeek.toLocaleDateString(), 'to', endOfWeek.toLocaleDateString());
+            return { startDate: startOfWeek, endDate: endOfWeek };
+        }
+
+        // Get week before last week data
+        function getWeekBeforeLastData() {
+            const now = new Date();
+            const twoWeeksAgo = new Date(now);
+            twoWeeksAgo.setDate(now.getDate() - 14);
+
+            const day = twoWeeksAgo.getDay();
+            const startOfWeek = new Date(twoWeeksAgo);
+            const diff = day === 0 ? -6 : 1 - day;
+            startOfWeek.setDate(twoWeeksAgo.getDate() + diff);
+            startOfWeek.setHours(0, 0, 0, 0);
+
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            endOfWeek.setHours(23, 59, 59, 999);
+
+            console.log('Week before last:', startOfWeek.toLocaleDateString(), 'to', endOfWeek.toLocaleDateString());
+            return { startDate: startOfWeek, endDate: endOfWeek };
+        }
+
+        // Filter data by week
+        function filterByWeek(data, weekFilter) {
+            console.log('Filtering by week:', weekFilter, 'Total data:', data.length);
+
+            if (weekFilter === 'all' || !weekFilter) {
+                console.log('Returning all data');
+                return data;
+            }
+
+            let weekData;
+            if (weekFilter === 'current') {
+                weekData = getCurrentWeekData();
+            } else if (weekFilter === 'last') {
+                weekData = getLastWeekData();
+            } else if (weekFilter === 'last2') {
+                weekData = getWeekBeforeLastData();
+            } else {
+                console.log('Unknown week filter, returning all data');
+                return data;
+            }
+
+            const filteredData = data.filter(item => {
+                const installDate = parseDate(item.installDate);
+                if (!installDate) {
+                    console.log('No valid date for item:', item.serial);
+                    return false;
+                }
+
+                const inRange = installDate >= weekData.startDate && installDate <= weekData.endDate;
+
+                if (inRange) {
+                    console.log('Item in range:', item.serial, 'Date:', item.installDate,
+                        'Parsed:', installDate.toLocaleDateString());
+                }
+
+                return inRange;
+            });
+
+            console.log(`Filtered ${filteredData.length} items for ${weekFilter} week`);
+
+            // Log some sample dates for debugging
+            if (filteredData.length > 0) {
+                console.log('Sample filtered items:',
+                    filteredData.slice(0, 3).map(d => ({ serial: d.serial, date: d.installDate }))
+                );
+            }
+
+            return filteredData;
+        }
+
+        // Alternative: Simple date-based filtering
+        function filterByDateRange(data, startDate, endDate) {
+            if (!startDate && !endDate) return data;
+
+            return data.filter(item => {
+                const installDate = parseDate(item.installDate);
+                if (!installDate) return false;
+
+                if (startDate && installDate < startDate) return false;
+                if (endDate && installDate > endDate) return false;
+
+                return true;
+            });
+        }
+
+        // Get week number for a date
+        function getWeekNumber(date) {
+            const d = new Date(date);
+            d.setHours(0, 0, 0, 0);
+            d.setDate(d.getDate() + 4 - (d.getDay() || 7)); // Thursday in current week
+            const yearStart = new Date(d.getFullYear(), 0, 1);
+            const weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+            return weekNo;
+        }
+
+        // Group data by week
+        function groupDataByWeek(data) {
+            const weeks = {};
+
+            data.forEach(item => {
+                const installDate = parseDate(item.installDate);
+                if (!installDate) return;
+
+                const weekNumber = getWeekNumber(installDate);
+                const year = installDate.getFullYear();
+                const weekKey = `${year}-W${weekNumber.toString().padStart(2, '0')}`;
+
+                if (!weeks[weekKey]) {
+                    weeks[weekKey] = {
+                        week: weekKey,
+                        year: year,
+                        weekNumber: weekNumber,
+                        startDate: new Date(installDate),
+                        endDate: new Date(installDate),
+                        count: 0,
+                        items: []
+                    };
+                }
+
+                weeks[weekKey].count++;
+                weeks[weekKey].items.push(item);
+
+                // Update start and end dates
+                if (installDate < weeks[weekKey].startDate) {
+                    weeks[weekKey].startDate = new Date(installDate);
+                }
+                if (installDate > weeks[weekKey].endDate) {
+                    weeks[weekKey].endDate = new Date(installDate);
+                }
+            });
+
+            // Convert to array and sort by date
+            return Object.values(weeks).sort((a, b) => b.startDate - a.startDate);
+        }
+
+        // Debug function to see what's happening
+        function debugWeekFilter(data) {
+            console.log('=== DEBUG WEEK FILTER ===');
+
+            // Get all dates
+            const dates = data.map(item => ({
+                serial: item.serial,
+                date: item.installDate,
+                parsed: parseDate(item.installDate)
+            })).filter(d => d.parsed);
+
+            console.log('All dates with parsable dates:', dates.length);
+
+            // Get current week
+            const currentWeek = getCurrentWeekData();
+            console.log('Current week range:',
+                currentWeek.startDate.toLocaleDateString(),
+                'to',
+                currentWeek.endDate.toLocaleDateString()
+            );
+
+            // Get last week
+            const lastWeek = getLastWeekData();
+            console.log('Last week range:',
+                lastWeek.startDate.toLocaleDateString(),
+                'to',
+                lastWeek.endDate.toLocaleDateString()
+            );
+
+            // Check which dates fall in each week
+            const currentWeekDates = dates.filter(d =>
+                d.parsed >= currentWeek.startDate && d.parsed <= currentWeek.endDate
+            );
+            const lastWeekDates = dates.filter(d =>
+                d.parsed >= lastWeek.startDate && d.parsed <= lastWeek.endDate
+            );
+
+            console.log('Dates in current week:', currentWeekDates.length);
+            console.log('Dates in last week:', lastWeekDates.length);
+
+            // Show sample of last week dates
+            if (lastWeekDates.length > 0) {
+                console.log('Sample last week dates:',
+                    lastWeekDates.slice(0, 5).map(d => ({ serial: d.serial, date: d.date }))
+                );
+            }
+
+            return {
+                currentWeek: currentWeekDates,
+                lastWeek: lastWeekDates,
+                allDates: dates
+            };
+        }
+
+        // Helper functions
+        function showLoading() {
+            loadingOverlay.style.display = 'flex';
+        }
+
+        function hideLoading() {
+            loadingOverlay.style.display = 'none';
+        }
+
+        function showNotification(message, type = 'info') {
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        // Fetch data from Firebase
+        async function fetchDashboardData() {
+            showLoading();
+
+            try {
+                console.log('جلب البيانات من قاعدة البيانات...');
+                const dbRef = ref(db, "SMART");
+                const snapshot = await get(dbRef);
+
+                if (!snapshot.exists()) {
+                    showNotification('لا توجد بيانات في قاعدة البيانات', 'error');
+                    updateStats();
+                    updateRecentActivity();
+                    return;
+                }
+
+                allData = [];
+                snapshot.forEach((childSnapshot) => {
+                    const data = childSnapshot.val();
+                    if (data && typeof data === 'object') {
+                        data.firebaseKey = childSnapshot.key;
+                        // تحويل installDate إلى تنسيق قياسي
+                        if (data.installDate) {
+                            const parsedDate = parseDate(data.installDate);
+                            if (parsedDate) {
+                                data.parsedInstallDate = parsedDate;
+                                data.formattedInstallDate = parsedDate.toLocaleDateString('ar-EG');
+                            }
+                        }
+                        allData.push(data);
+                    }
+                });
+
+                console.log(`تم جلب ${allData.length} سجل`);
+                processData(allData);
+                showNotification(`تم تحديث البيانات بنجاح - ${allData.length} عداد`, 'success');
+
+            } catch (error) {
+                console.error('خطأ في جلب البيانات:', error);
+                showNotification('حدث خطأ أثناء جلب البيانات. تحقق من اتصال الإنترنت.', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Process and filter data
+        function processData(data) {
+            // تحديث المرشحات
+            updateFilterDropdowns();
+            updateAllUI();
+        }
+
+        // Update filter dropdowns
+        function updateFilterDropdowns() {
+            // تحديث مرشح القطاعات لجميع الأوقات
+            const discos = new Set(allData.map(item => item.discoSec).filter(Boolean));
+            updateFilterDropdown(allDiscoFilter, Array.from(discos), 'القطاع');
+
+            // تحديث مرشح الهندسات لجميع الأوقات
+            const handsas = new Set(allData.map(item => item.discoBranch).filter(Boolean));
+            updateFilterDropdown(allHandsaFilter, Array.from(handsas), 'الهندسة');
+
+            // تحديث مرشح النوع للتركيب الحالي
+            const types = new Set(allData.map(item => item.type).filter(Boolean));
+            updateFilterDropdown(currentTypeFilter, Array.from(types), 'النوع');
+        }
+
+        function updateFilterDropdown(select, values, label) {
+            select.innerHTML = `<option value="">جميع ${label}</option>`;
+            values.sort().forEach(value => {
+                if (value && value.trim() !== '') {
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = value;
+                    select.appendChild(option);
+                }
+            });
+        }
+
+        // Update all UI components
+        function updateAllUI() {
+            updateStats();
+            updateRanking();
+            updateAlert();
+            updateCurrentCharts();
+            updateAllTimeCharts();
+            updateAdvancedCharts();
+            updateRecentActivity();
+        }
+
+        // Update statistics cards
+        function updateStats() {
+            // إجمالي العدادات
+            document.getElementById('totalMeters').textContent = formatNumber(allData.length);
+
+            // العدادات المضافة هذا الأسبوع
+            const currentWeekData = filterByWeek(allData, 'current');
+            const totalWeekMeters = currentWeekData.length;
+            document.getElementById('totalWeekMeters').textContent = formatNumber(totalWeekMeters);
+
+            // حساب نسبة التقدم الأسبوعي
+            const weekProgressPercentage = Math.min(100, Math.round((totalWeekMeters / WEEKLY_TARGET_METERS) * 100));
+            document.getElementById('weekProgressPercentage').textContent = `${weekProgressPercentage}%`;
+
+            const weekProgressFill = document.getElementById('weekProgressFill');
+            weekProgressFill.style.width = `${weekProgressPercentage}%`;
+
+            if (weekProgressPercentage < 50) {
+                weekProgressFill.className = 'progress-fill critical';
+            } else if (weekProgressPercentage < 80) {
+                weekProgressFill.className = 'progress-fill warning';
+            } else {
+                weekProgressFill.className = 'progress-fill';
+            }
+
+            // عدد القطاعات
+            const discos = new Set(allData.map(item => item.discoSec).filter(Boolean));
+            document.getElementById('totalDisco').textContent = formatNumber(discos.size);
+
+            // عدد الهندسات
+            const handsas = new Set(allData.map(item => item.discoBranch).filter(Boolean));
+            document.getElementById('totalHandsa').textContent = formatNumber(handsas.size);
+
+            // أكثر نوع انتشاراً
+            const typeCounts = {};
+            allData.forEach(item => {
+                const type = item.type || 'غير محدد';
+                typeCounts[type] = (typeCounts[type] || 0) + 1;
+            });
+
+            let mostCommonType = 'غير محدد';
+            let maxCount = 0;
+            Object.entries(typeCounts).forEach(([type, count]) => {
+                if (count > maxCount) {
+                    maxCount = count;
+                    mostCommonType = type;
+                }
+            });
+
+            const totalMeters = allData.length;
+            const typePercentage = totalMeters > 0 ? Math.round((maxCount / totalMeters) * 100) : 0;
+            document.getElementById('typeDistribution').textContent = mostCommonType;
+            document.getElementById('typeInfo').textContent = `${maxCount} عداد (${typePercentage}%)`;
+
+            // أعلى هندسة أداء
+            const handsaCounts = {};
+            allData.forEach(item => {
+                const handsa = item.discoBranch || 'غير محدد';
+                if (handsa !== 'غير محدد') {
+                    handsaCounts[handsa] = (handsaCounts[handsa] || 0) + 1;
+                }
+            });
+
+            let topHandsa = 'غير محدد';
+            let topHandsaCount = 0;
+            Object.entries(handsaCounts).forEach(([handsa, count]) => {
+                if (count > topHandsaCount) {
+                    topHandsaCount = count;
+                    topHandsa = handsa;
+                }
+            });
+
+            document.getElementById('topHandsa').textContent = topHandsa;
+            document.getElementById('topHandsaInfo').textContent = `${topHandsaCount} عداد`;
+        }
+
+        // Update ranking of Handsa based on weekly installations
+        function updateRanking() {
+            const currentWeekData = filterByWeek(allData, 'current');
+
+            // تجميع العدادات حسب الهندسة للأسبوع الحالي
+            const handsaCounts = {};
+            currentWeekData.forEach(item => {
+                const handsa = item.discoBranch || 'غير محدد';
+                if (handsa !== 'غير محدد') {
+                    handsaCounts[handsa] = (handsaCounts[handsa] || 0) + 1;
+                }
+            });
+
+            // تحويل إلى مصفوفة وترتيب تصاعدي (الأقل تركيبًا أولاً)
+            const ranking = Object.entries(handsaCounts)
+                .map(([handsa, count]) => ({
+                    handsa,
+                    count,
+                    percentage: Math.min(100, (count / WEEKLY_TARGET_METERS) * 100)
+                }))
+                .sort((a, b) => a.percentage - b.percentage)
+                .slice(0, 5); // عرض أفضل 5 فقط
+
+            if (ranking.length === 0) {
+                rankingList.innerHTML = `
+                    <div class="ranking-item">
+                        <div class="ranking-info">
+                            <div class="ranking-number">1</div>
+                            <div>لا توجد بيانات للأسبوع الحالي</div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            let rankingHTML = '';
+            ranking.forEach((item, index) => {
+                let statusClass = '';
+                if (item.percentage < 50) statusClass = 'ranking-critical';
+                else if (item.percentage < 80) statusClass = 'ranking-warning';
+                else statusClass = 'ranking-good';
+
+                rankingHTML += `
+                    <div class="ranking-item ${statusClass}">
+                        <div class="ranking-info">
+                            <div class="ranking-number">${index + 1}</div>
+                            <div>
+                                <strong>${item.handsa}</strong>
+                                <br>
+                                <small>${item.count} عداد</small>
+                            </div>
+                        </div>
+                        <div class="ranking-percentage">${item.percentage.toFixed(1)}%</div>
+                    </div>
+                `;
+            });
+
+            rankingList.innerHTML = rankingHTML;
+        }
+
+        // Update alert for delayed Handsa
+        function updateAlert() {
+            const cairoDayFormatter = new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'Africa/Cairo',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            });
+            const todayKey = cairoDayFormatter.format(new Date());
+            const todayLabel = new Intl.DateTimeFormat('ar-EG', { timeZone: 'Africa/Cairo' }).format(new Date());
+
+            const allHandsas = Array.from(
+                new Set(allData.map(item => item.discoBranch).filter(Boolean))
+            ).filter(handsa => handsa !== 'غير محدد');
+
+            if (allHandsas.length === 0) {
+                alertBanner.classList.remove('show');
+                alertSummary.textContent = '';
+                alertMessage.innerHTML = '';
+                lastAlertHtml = '';
+                return;
+            }
+
+            const handsaCounts = {};
+            allHandsas.forEach(handsa => {
+                handsaCounts[handsa] = 0;
+            });
+
+            allData.forEach(item => {
+                const handsa = item.discoBranch || 'غير محدد';
+                if (handsa === 'غير محدد' || !(handsa in handsaCounts)) return;
+
+                const installDate = item.parsedInstallDate || parseDate(item.installDate);
+                if (!installDate) return;
+
+                if (cairoDayFormatter.format(installDate) === todayKey) {
+                    handsaCounts[handsa] += 1;
+                }
+            });
+
+            // العثور على الهندسات التي لم تحقق الهدف اليومي
+            const delayedHandsas = Object.entries(handsaCounts)
+                .filter(([_, count]) => count < DAILY_TARGET_METERS)
+                .sort((a, b) => (a[1] / DAILY_TARGET_METERS) - (b[1] / DAILY_TARGET_METERS));
+
+            if (delayedHandsas.length > 0) {
+                const rows = delayedHandsas.map(([handsa, count], index) => {
+                    const percent = ((count / DAILY_TARGET_METERS) * 100).toFixed(1);
+                    const meterWord = count === 1 ? 'عداد' : 'عدادات';
+                    return `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${escapeHtml(handsa)}</td>
+                            <td>${count} ${meterWord}</td>
+                            <td>${percent}%</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                const alertHtml = `
+                    <div class="alert-table-wrap">
+                        <table class="alert-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>الهندسة</th>
+                                    <th>تركيب اليوم</th>
+                                    <th>نسبة الإنجاز</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                `;
+
+                const summaryText = `عدد الهندسات المتأخرة اليوم: ${delayedHandsas.length} | الهدف اليومي: ${DAILY_TARGET_METERS} عداد | تاريخ اليوم: ${todayLabel}`;
+                if (summaryText !== alertSummary.textContent) {
+                    alertSummary.textContent = summaryText;
+                }
+                if (alertHtml !== lastAlertHtml) {
+                    alertMessage.innerHTML = alertHtml;
+                    lastAlertHtml = alertHtml;
+                }
+                alertBanner.classList.add('show');
+            } else {
+                alertBanner.classList.remove('show');
+                alertSummary.textContent = '';
+                alertMessage.innerHTML = '';
+                lastAlertHtml = '';
+            }
+        }
+
+        // Update current installation charts
+        function updateCurrentCharts() {
+            // توزيع الهندسات للتركيب الحالي
+            const weekFilterValue = currentWeekFilter.value;
+            const currentData = filterByWeek(allData, weekFilterValue);
+
+            const handsaCounts = {};
+            currentData.forEach(item => {
+                const handsa = item.discoBranch || 'غير محدد';
+                if (handsa !== 'غير محدد') {
+                    handsaCounts[handsa] = (handsaCounts[handsa] || 0) + 1;
+                }
+            });
+
+            const sortedHandsas = Object.entries(handsaCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 15);
+
+            const handsaLabels = sortedHandsas.map(item => item[0]);
+            const handsaData = sortedHandsas.map(item => item[1]);
+
+            if (currentHandsaChart) {
+                currentHandsaChart.destroy();
+            }
+
+            const handsaCtx = document.getElementById('currentHandsaChart').getContext('2d');
+            if (handsaCtx) {
+                currentHandsaChart = new Chart(handsaCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: handsaLabels,
+                        datasets: [{
+                            label: 'عدد العدادات',
+                            data: handsaData,
+                            backgroundColor: '#3498db',
+                            borderColor: '#2980b9',
+                            borderWidth: 1,
+                            borderRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            title: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        const value = context.raw;
+                                        const total = currentData.length;
+                                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                        return `${value} عداد (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    font: { family: 'Cairo' },
+                                    callback: function (value) {
+                                        return formatNumber(value);
+                                    }
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    font: { family: 'Cairo' },
+                                    maxRotation: 45,
+                                    minRotation: 45
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // توزيع النوع للتركيب الحالي
+            const typeCounts = {};
+            currentData.forEach(item => {
+                const type = item.type || 'غير محدد';
+                typeCounts[type] = (typeCounts[type] || 0) + 1;
+            });
+
+            const typeLabels = Object.keys(typeCounts);
+            const typeData = Object.values(typeCounts);
+
+            if (currentTypeChart) {
+                currentTypeChart.destroy();
+            }
+
+            const typeCtx = document.getElementById('currentTypeChart').getContext('2d');
+            if (typeCtx) {
+                currentTypeChart = new Chart(typeCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: typeLabels,
+                        datasets: [{
+                            label: 'عدد العدادات',
+                            data: typeData,
+                            backgroundColor: [
+                                '#3498db', '#2ecc71', '#f39c12', '#e74c3c',
+                                '#9b59b6', '#1abc9c', '#34495e', '#7f8c8d'
+                            ],
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'left',
+                                labels: {
+                                    font: {
+                                        family: 'Cairo',
+                                        size: 12
+                                    },
+                                    padding: 15
+                                }
+                            },
+                            title: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        const value = context.raw;
+                                        const total = currentData.length;
+                                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                        return `${context.label}: ${value} عداد (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Update all-time charts
+        function updateAllTimeCharts() {
+            // توزيع الهندسات لجميع الأوقات
+            const filteredData = filterDataByFilters(allData);
+
+            const handsaCounts = {};
+            filteredData.forEach(item => {
+                const handsa = item.discoBranch || 'غير محدد';
+                if (handsa !== 'غير محدد') {
+                    handsaCounts[handsa] = (handsaCounts[handsa] || 0) + 1;
+                }
+            });
+
+            const sortedHandsas = Object.entries(handsaCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 15);
+
+            const handsaLabels = sortedHandsas.map(item => item[0]);
+            const handsaData = sortedHandsas.map(item => item[1]);
+
+            if (allHandsaChart) {
+                allHandsaChart.destroy();
+            }
+
+            const allHandsaCtx = document.getElementById('allHandsaChart').getContext('2d');
+            if (allHandsaCtx) {
+                allHandsaChart = new Chart(allHandsaCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: handsaLabels,
+                        datasets: [{
+                            label: 'عدد العدادات',
+                            data: handsaData,
+                            backgroundColor: '#2ecc71',
+                            borderColor: '#27ae60',
+                            borderWidth: 1,
+                            borderRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            title: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        const value = context.raw;
+                                        const total = filteredData.length;
+                                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                        return `${value} عداد (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    font: { family: 'Cairo' },
+                                    callback: function (value) {
+                                        return formatNumber(value);
+                                    }
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    font: { family: 'Cairo' },
+                                    maxRotation: 45,
+                                    minRotation: 45
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // توزيع القطاعات لجميع الأوقات
+            const discoCounts = {};
+            filteredData.forEach(item => {
+                const disco = item.discoSec || 'غير محدد';
+                if (disco !== 'غير محدد') {
+                    discoCounts[disco] = (discoCounts[disco] || 0) + 1;
+                }
+            });
+
+            const sortedDiscos = Object.entries(discoCounts)
+                .sort((a, b) => b[1] - a[1]);
+
+            const discoLabels = sortedDiscos.map(item => item[0]);
+            const discoData = sortedDiscos.map(item => item[1]);
+
+            if (allDiscoChart) {
+                allDiscoChart.destroy();
+            }
+
+            const discoCtx = document.getElementById('allDiscoChart').getContext('2d');
+            if (discoCtx) {
+                allDiscoChart = new Chart(discoCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: discoLabels,
+                        datasets: [{
+                            label: 'عدد العدادات',
+                            data: discoData,
+                            backgroundColor: [
+                                '#3498db', '#2ecc71', '#f39c12', '#e74c3c',
+                                '#9b59b6', '#1abc9c', '#34495e', '#7f8c8d',
+                                '#d35400', '#27ae60'
+                            ],
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'left',
+                                labels: {
+                                    font: {
+                                        family: 'Cairo',
+                                        size: 12
+                                    },
+                                    padding: 15
+                                }
+                            },
+                            title: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        const value = context.raw;
+                                        const total = filteredData.length;
+                                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                        return `${context.label}: ${value} عداد (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Update advanced charts
+        function updateAdvancedCharts() {
+            // توزيع الهندسات المتقدم
+            const handsaCounts = {};
+            allData.forEach(item => {
+                const handsa = item.discoBranch || 'غير محدد';
+                if (handsa !== 'غير محدد') {
+                    handsaCounts[handsa] = (handsaCounts[handsa] || 0) + 1;
+                }
+            });
+
+            const sortedHandsas = Object.entries(handsaCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            const handsaLabels = sortedHandsas.map(item => item[0]);
+            const handsaData = sortedHandsas.map(item => item[1]);
+
+            if (advancedHandsaChart) {
+                advancedHandsaChart.destroy();
+            }
+
+            const advancedHandsaCtx = document.getElementById('advancedHandsaChart').getContext('2d');
+            if (advancedHandsaCtx) {
+                advancedHandsaChart = new Chart(advancedHandsaCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: handsaLabels,
+                        datasets: [{
+                            label: 'عدد العدادات',
+                            data: handsaData,
+                            backgroundColor: '#9b59b6',
+                            borderColor: '#8e44ad',
+                            borderWidth: 1,
+                            borderRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        const value = context.raw;
+                                        const total = allData.length;
+                                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                        return `${value} عداد (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    font: { family: 'Cairo' },
+                                    callback: function (value) {
+                                        return formatNumber(value);
+                                    }
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    font: { family: 'Cairo' },
+                                    maxRotation: 45,
+                                    minRotation: 45
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // توزيع القطاعات المتقدم
+            const discoCounts = {};
+            allData.forEach(item => {
+                const disco = item.discoSec || 'غير محدد';
+                if (disco !== 'غير محدد') {
+                    discoCounts[disco] = (discoCounts[disco] || 0) + 1;
+                }
+            });
+
+            const sortedDiscos = Object.entries(discoCounts)
+                .sort((a, b) => b[1] - a[1]);
+
+            const discoLabels = sortedDiscos.map(item => item[0]);
+            const discoData = sortedDiscos.map(item => item[1]);
+
+            if (advancedDiscoChart) {
+                advancedDiscoChart.destroy();
+            }
+
+            const advancedDiscoCtx = document.getElementById('advancedDiscoChart').getContext('2d');
+            if (advancedDiscoCtx) {
+                advancedDiscoChart = new Chart(advancedDiscoCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: discoLabels,
+                        datasets: [{
+                            label: 'عدد العدادات',
+                            data: discoData,
+                            backgroundColor: [
+                                '#3498db', '#2ecc71', '#f39c12', '#e74c3c',
+                                '#9b59b6', '#1abc9c', '#34495e', '#7f8c8d'
+                            ],
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'left',
+                                labels: {
+                                    font: {
+                                        family: 'Cairo',
+                                        size: 12
+                                    },
+                                    padding: 15
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        const value = context.raw;
+                                        const total = allData.length;
+                                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                        return `${context.label}: ${value} عداد (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // توزيع النوع المتقدم
+            const typeCounts = {};
+            allData.forEach(item => {
+                const type = item.type || 'غير محدد';
+                typeCounts[type] = (typeCounts[type] || 0) + 1;
+            });
+
+            const typeLabels = Object.keys(typeCounts);
+            const typeData = Object.values(typeCounts);
+
+            if (advancedTypeChart) {
+                advancedTypeChart.destroy();
+            }
+
+            const advancedTypeCtx = document.getElementById('advancedTypeChart').getContext('2d');
+            if (advancedTypeCtx) {
+                advancedTypeChart = new Chart(advancedTypeCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: typeLabels,
+                        datasets: [{
+                            label: 'عدد العدادات',
+                            data: typeData,
+                            backgroundColor: [
+                                '#3498db', '#2ecc71', '#f39c12', '#e74c3c',
+                                '#9b59b6', '#1abc9c', '#34495e', '#7f8c8d'
+                            ],
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'left',
+                                labels: {
+                                    font: {
+                                        family: 'Cairo',
+                                        size: 12
+                                    },
+                                    padding: 15
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        const value = context.raw;
+                                        const total = allData.length;
+                                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                        return `${context.label}: ${value} عداد (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Filter data by filters
+        function filterDataByFilters(data) {
+            const discoFilterValue = allDiscoFilter.value;
+            const handsaFilterValue = allHandsaFilter.value;
+
+            return data.filter(item => {
+                if (discoFilterValue && item.discoSec !== discoFilterValue) return false;
+                if (handsaFilterValue && item.discoBranch !== handsaFilterValue) return false;
+                return true;
+            });
+        }
+
+        // Update recent activity sorted by installDate
+        function updateRecentActivity() {
+            activityList.innerHTML = '';
+
+            // فرز البيانات حسب تاريخ التركيب (الأحدث أولاً)
+            const recentData = [...allData]
+                .map(item => {
+                    const parsed = parseDate(item.installDate);
+                    return {
+                        ...item,
+                        parsedInstallDate: parsed,
+                        formattedInstallDate: parsed ? parsed.toLocaleDateString('ar-EG') : null
+                    };
+                })
+                .filter(item => item.parsedInstallDate)
+                .sort((a, b) => b.parsedInstallDate - a.parsedInstallDate)
+                .slice(0, 10);
+
+            if (recentData.length === 0) {
+                activityList.innerHTML = `
+                    <li class="activity-item">
+                        <div class="activity-content">
+                            <p class="no-activity-message">
+                                لا توجد عدادات مضافة مؤخرًا
+                            </p>
+                        </div>
+                    </li>
+                `;
+                return;
+            }
+
+            const colors = ['#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#e74c3c'];
+
+            recentData.forEach((item, index) => {
+                const color = colors[index % colors.length];
+
+                const activityItem = document.createElement('li');
+                activityItem.className = 'activity-item';
+                activityItem.innerHTML = `
+                    <div class="activity-icon" style="--icon-bg: ${color}">
+                        <i class="fas fa-microchip"></i>
+                    </div>
+                    <div class="activity-content">
+                        <h4>${item.serial || 'غير معروف'}</h4>
+                        <p>${item.facDesc || item.model || 'بدون وصف'}</p>
+                        <div class="activity-details">
+                            <span class="activity-detail">
+                                <i class="fas fa-sitemap"></i>
+                                ${item.discoBranch || 'غير محدد'}
+                            </span>
+                            <span class="activity-detail">
+                                <i class="fas fa-tag"></i>
+                                ${item.type || 'غير محدد'}
+                            </span>
+                            <span class="activity-detail">
+                                <i class="fas fa-calendar-alt"></i>
+                                ${item.formattedInstallDate || 'غير محدد'}
+                            </span>
+                        </div>
+                    </div>
+                `;
+
+                activityList.appendChild(activityItem);
+            });
+        }
+
+        // Export data
+        function exportData() {
+            if (allData.length === 0) {
+                showNotification('لا توجد بيانات للتصدير', 'warning');
+                return;
+            }
+
+            const headers = ['Serial', 'SIM', 'Badge', 'Model', 'EEHC Code',
+                'Facility Description', 'Disco', 'Disco Section', 'Disco Branch',
+                'Area', 'Loss Area', 'Device Function', 'Distribution Facility',
+                'Installation Date', 'Address', 'Type', 'Latitude', 'Longitude'];
+
+            const csvRows = [headers.join(',')];
+
+            allData.forEach(item => {
+                const row = [
+                    item.serial || '', item.sim || '', item.badge || '',
+                    item.model || '', item.code1 || '',
+                    item.facDesc || '', item.disco || '', item.discoSec || '',
+                    item.discoBranch || '', item.area || '', item.lossArea || '',
+                    item.devFunc || '', item.distFac || '', item.installDate || '',
+                    item.addr4 || '', item.type || '', item.lat || '', item.lon || ''
+                ].map(value => `"${value}"`).join(',');
+
+                csvRows.push(row);
+            });
+
+            const csvContent = csvRows.join('\n');
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `smart-meters-${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showNotification(`تم تصدير ${allData.length} سجل`, 'success');
+        }
+
+        // Chart tabs functionality
+        chartTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                chartTabs.forEach(t => t.classList.remove('active'));
+                chartTabContents.forEach(c => c.classList.remove('active'));
+
+                // Add active class to clicked tab
+                tab.classList.add('active');
+
+                // Show corresponding content
+                const chartId = tab.getAttribute('data-chart');
+                document.getElementById(chartId).classList.add('active');
+            });
+        });
+
+        // Event Listeners for filters
+        currentWeekFilter.addEventListener('change', updateCurrentCharts);
+        currentTypeFilter.addEventListener('change', updateCurrentCharts);
+        allHandsaFilter.addEventListener('change', updateAllTimeCharts);
+        allDiscoFilter.addEventListener('change', updateAllTimeCharts);
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCurrentDate();
+            fetchDashboardData().catch(error => {
+                console.error('خطأ في التحميل الأولي:', error);
+                showNotification('حدث خطأ في التحميل الأولي', 'error');
+            });
+            setInterval(updateCurrentDate, 60000);
+        });
+
+        refreshBtn.addEventListener('click', () => {
+            fetchDashboardData().catch(error => {
+                console.error('خطأ في تحديث البيانات:', error);
+            });
+        });
+
+        exportBtn.addEventListener('click', exportData);
+        viewAllBtn.addEventListener('click', () => window.open('SMART_R.html', '_blank'));
+        if (pageNavigator) {
+            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+            pageNavigator.value = `./${currentPage}`;
+            pageNavigator.addEventListener('change', (event) => {
+                const targetPage = event.target.value;
+                if (targetPage) {
+                    window.location.assign(targetPage);
+                }
+            });
+        }
+        closeAlertBtn.addEventListener('click', () => {
+            alertBanner.classList.remove('show');
+        });
+
+        // Auto-refresh every 5 minutes
+        setInterval(() => {
+            fetchDashboardData().catch(error => {
+                console.error('خطأ في التحديث التلقائي:', error);
+            });
+        }, 300000);
+
+    </script>
+    <script>
+        (function () {
+            const checkbox = document.getElementById("darkToggle");
+
+            function setDark(enable) {
+                if (enable) {
+                    document.body.classList.add("dark-mode");
+                    localStorage.setItem("darkMode", "1");
+                } else {
+                    document.body.classList.remove("dark-mode");
+                    localStorage.setItem("darkMode", "0");
+                }
+                if (checkbox) checkbox.setAttribute("aria-checked", enable);
+            }
+
+            window.toggleDarkMode = function () {
+                if (checkbox) setDark(!checkbox.checked);
+            };
+
+            if (checkbox) {
+                checkbox.addEventListener("change", function (e) {
+                    setDark(e.target.checked);
+                });
+            }
+
+            function init() {
+                const saved = localStorage.getItem("darkMode");
+                const enabled = saved === "1";
+                if (checkbox) {
+                    checkbox.checked = enabled;
+                    setDark(enabled);
+                }
+            }
+
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", init);
+            } else {
+                init();
+            }
+        })();
+    </script>
+</body>
+
+</html>

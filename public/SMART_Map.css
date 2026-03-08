@@ -422,16 +422,6 @@
      }
  }
 
- /* Map Controls */
- .map-controls {
-     position: absolute;
-     top: 20px;
-     left: 20px;
-     z-index: 1000;
-     display: flex;
-     flex-direction: column;
-     gap: 10px;
- }
 
  .map-control-btn {
      background: white;
@@ -476,3 +466,21 @@
  .sidebar::-webkit-scrollbar-thumb:hover {
      background: #16a085;
  }
+ /* Unified Map Controls - Top Left Horizontal */
+.map-controls {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: row; /* Forces horizontal alignment */
+    flex-wrap: nowrap;   /* Prevents stacking on small screens */
+    gap: 10px;           /* Spacing between buttons */
+    align-items: center;
+}
+
+/* Ensure buttons don't shrink and text stays on one line */
+.map-control-btn, .btn-secondary {
+    white-space: nowrap;
+    flex-shrink: 0;
+}
