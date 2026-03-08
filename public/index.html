@@ -1,13 +1,12 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>لوحة تحكم - العدادات الذكية</title>
+    <title>لوحة التحكم - الحسابات الكهربية</title>
 
-    <!-- Fonts & Icons -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
     <script
@@ -15,7 +14,6 @@
       src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"
     ></script>
 
-    <!-- Styles -->
     <style>
       :root {
         --primary-green: #2ecc71;
@@ -44,6 +42,7 @@
         line-height: 1.6;
       }
 
+      /* Navigation */
       .main-nav {
         background: var(--white);
         padding: 1rem 2rem;
@@ -69,82 +68,46 @@
           var(--primary-green),
           var(--dark-green)
         );
-        width: 60px;
-        height: 60px;
+        width: 50px;
+        height: 50px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.8rem;
+        font-size: 1.5rem;
         color: white;
       }
 
       .brand-text h2 {
-        font-size: 1.1rem;
+        font-size: 1rem;
         line-height: 1.4;
         font-weight: 600;
-        color: var(--text-dark);
       }
 
       .brand-text .subtitle {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         color: var(--text-light);
-        margin-top: 0.25rem;
+        display: block;
       }
 
       .time-box {
         background: var(--light-bg);
-        padding: 0.75rem 1.5rem;
+        padding: 0.6rem 1.2rem;
         border-radius: var(--radius);
         border: 1px solid var(--border-color);
         display: flex;
         align-items: center;
         gap: 0.75rem;
-      }
-
-      .current-time {
-        font-family: "Cairo", monospace;
-        font-size: 1.1rem;
+        font-size: 0.95rem;
         font-weight: 600;
         color: var(--dark-green);
       }
 
+      /* Layout */
       .main-container {
         padding: 2rem;
-        max-width: 1400px;
+        max-width: 1200px;
         margin: 0 auto;
-      }
-
-      .welcome-banner {
-        background: linear-gradient(
-          135deg,
-          var(--primary-green),
-          var(--dark-green)
-        );
-        color: white;
-        padding: 3rem 2rem;
-        border-radius: var(--radius);
-        margin-bottom: 2.5rem;
-        text-align: center;
-        box-shadow: var(--shadow);
-      }
-
-      .welcome-banner h1 {
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
-      }
-
-      .welcome-banner p {
-        font-size: 1.2rem;
-        opacity: 0.95;
-        max-width: 600px;
-        margin: 0 auto;
-      }
-
-      .menu-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-        gap: 2rem;
       }
 
       .menu-card {
@@ -152,14 +115,9 @@
         border-radius: var(--radius);
         box-shadow: var(--shadow);
         overflow: hidden;
-        transition: var(--transition);
         border: 1px solid var(--border-color);
-      }
-
-      .menu-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 20px rgba(46, 204, 113, 0.15);
-        border-color: var(--primary-green);
+        max-width: 500px;
+        margin: 0 auto;
       }
 
       .card-header {
@@ -175,343 +133,59 @@
         gap: 1rem;
       }
 
-      .card-header ion-icon {
-        font-size: 1.5rem;
-      }
-
       .card-header h3 {
         margin: 0;
         font-size: 1.3rem;
-        font-weight: 600;
       }
 
       .card-body {
-        padding: 1.5rem;
+        padding: 1rem;
       }
 
+      /* Links */
       .menu-link {
         display: flex;
         align-items: center;
         gap: 1rem;
-        padding: 1rem;
-        margin-bottom: 0.75rem;
+        padding: 0.9rem 1.2rem;
+        margin-bottom: 0.6rem;
         background: var(--light-bg);
         border-radius: 10px;
         text-decoration: none;
         color: var(--text-dark);
         transition: var(--transition);
         border: 1px solid transparent;
+        font-weight: 500;
       }
 
       .menu-link:hover {
         background: white;
         color: var(--dark-green);
-        border-color: var(--border-color);
-        transform: translateX(-8px);
+        border-color: var(--primary-green);
+        transform: translateX(-5px);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
       }
 
       .menu-link ion-icon {
         color: var(--primary-green);
         font-size: 1.3rem;
-        transition: var(--transition);
       }
 
-      .menu-link:hover ion-icon {
-        transform: scale(1.1);
-      }
-
-      .menu-link span {
-        flex: 1;
-        font-weight: 500;
-      }
-
-      /* نافذة كلمة المرور */
-      .password-modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.8);
-        z-index: 2000;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .password-modal-content {
-        background: var(--white);
-        padding: 2rem;
-        border-radius: var(--radius);
-        max-width: 400px;
-        width: 90%;
-        text-align: center;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      }
-
-      .password-modal h3 {
-        margin-bottom: 1.5rem;
-        color: var(--text-dark);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-      }
-
-      .password-input {
-        width: 100%;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border: 2px solid var(--border-color);
-        border-radius: 8px;
-        font-size: 1rem;
-        text-align: center;
-        font-family: "Cairo", sans-serif;
-        transition: var(--transition);
-      }
-
-      .password-input:focus {
-        outline: none;
-        border-color: var(--primary-green);
-        box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.1);
-      }
-
-      .password-buttons {
-        display: flex;
-        gap: 1rem;
-        margin-top: 1.5rem;
-      }
-
-      .password-btn {
-        flex: 1;
-        padding: 0.8rem;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: bold;
-        font-family: "Cairo", sans-serif;
-        border: none;
-        transition: var(--transition);
-      }
-
-      .password-btn.submit {
-        background: var(--primary-green);
-        color: white;
-      }
-
-      .password-btn.submit:hover {
-        background: var(--dark-green);
-      }
-
-      .password-btn.cancel {
-        background: var(--light-bg);
-        color: var(--text-dark);
-        border: 1px solid var(--border-color);
-      }
-
-      .password-btn.cancel:hover {
-        background: #e9ece9;
-      }
-
-      .password-error {
-        color: #e74c3c;
-        margin-top: 1rem;
-        font-size: 0.9rem;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-      }
-
+      /* Responsive */
       @media (max-width: 768px) {
         .main-nav {
           flex-direction: column;
           gap: 1rem;
-          padding: 1rem;
-        }
-
-        .brand-text {
           text-align: center;
         }
-
-        .brand-text h2 {
-          font-size: 1rem;
-        }
-
-        .welcome-banner {
-          padding: 2rem 1rem;
-        }
-
-        .welcome-banner h1 {
-          font-size: 1.8rem;
-        }
-
-        .main-container {
-          padding: 1rem;
-        }
-
-        .menu-grid {
-          grid-template-columns: 1fr;
-          gap: 1.5rem;
-        }
-
-        .time-box {
-          padding: 0.5rem 1rem;
-          font-size: 0.9rem;
-        }
-      }
-
-      @media (max-width: 480px) {
-        .welcome-banner h1 {
-          font-size: 1.5rem;
-        }
-
-        .welcome-banner p {
-          font-size: 1rem;
-        }
-
-        .card-header {
-          padding: 1.2rem;
-        }
-
-        .card-header h3 {
-          font-size: 1.1rem;
-        }
-
-        .menu-link {
-          padding: 0.8rem;
-        }
-
-        .password-modal-content {
-          padding: 1.5rem;
-        }
-
-        .password-buttons {
+        .nav-brand {
           flex-direction: column;
         }
-      }
-
-      /* Change Password Button Styles */
-      .change-password-btn {
-        background: transparent;
-        border: 1px solid var(--border-color);
-        color: var(--text-dark);
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 0.9rem;
-        font-family: "Cairo", sans-serif;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        transition: var(--transition);
-      }
-
-      .change-password-btn:hover {
-        border-color: var(--primary-green);
-        color: var(--dark-green);
-      }
-
-      /* Password Info Box */
-      .password-info {
-        margin-top: 1.5rem;
-        font-size: 0.8rem;
-        color: var(--text-light);
-      }
-
-      .password-info p {
-        margin: 0;
-      }
-
-      .password-info p + p {
-        font-size: 0.75rem;
-        margin-top: 0.5rem;
-      }
-
-      .lock-icon {
-        color: var(--dark-green);
-      }
-
-      /* Lock Icon for Password Modal */
-      .password-modal-content ion-icon {
-        color: var(--dark-green);
-      }
-
-      /* Password Modal Info Text */
-      .password-modal-content p {
-        color: var(--text-light);
-        margin-bottom: 1.5rem;
-      }
-
-      /* Change Password Button in Nav */
-      .nav-change-password-btn {
-        background: transparent;
-        border: 1px solid var(--border-color);
-        color: var(--text-dark);
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 0.9rem;
-        font-family: "Cairo", sans-serif;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        transition: var(--transition);
-      }
-
-      .nav-change-password-btn:hover {
-        border-color: var(--primary-green);
-        color: var(--dark-green);
-      }
-
-      /* Password Info Footer */
-      .password-info-footer {
-        margin-top: 1.5rem;
-        font-size: 0.8rem;
-        color: var(--text-light);
-      }
-
-      /* Password Info Box in Modal */
-      .password-info-box {
-        margin-top: 1.5rem;
-        font-size: 0.8rem;
-        color: var(--text-light);
-      }
-
-      .password-info-box p {
-        margin: 0;
-      }
-
-      .password-info-box p + p {
-        font-size: 0.75rem;
-        margin-top: 0.5rem;
-      }
-
-      /* Change Password Button */
-      .change-password-button {
-        background: transparent;
-        border: 1px solid var(--border-color);
-        color: var(--text-dark);
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 0.9rem;
-        font-family: "Cairo", sans-serif;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        transition: var(--transition);
-      }
-
-      .change-password-button:hover {
-        border-color: var(--primary-green);
-        color: var(--dark-green);
       }
     </style>
   </head>
 
   <body>
-    <!-- Navigation -->
     <nav class="main-nav">
       <div class="nav-brand">
         <div class="logo">
@@ -519,355 +193,79 @@
         </div>
         <div class="brand-text">
           <h2>
-            وزارة الكهرباء والطاقة المتجددة<br />
+            وزارة الكهرباء والطاقة المتجددة
             <span class="subtitle">شركة شمال الدلتا لتوزيع الكهرباء</span>
           </h2>
         </div>
       </div>
-
       <div class="time-box">
         <ion-icon name="time-outline"></ion-icon>
-        <span id="currentTime" class="current-time"></span>
+        <span id="currentTime"></span>
       </div>
     </nav>
 
-    <!-- Main Content -->
     <main class="main-container">
-      <!-- Welcome Banner -->
-      <section class="welcome-banner">
-        <h1>لوحة التحكم الرئيسية</h1>
-        <p>الفحص والصيانة و تركيب العدادات الذكية - الحسابات الكهربية</p>
-      </section>
-
-      <!-- Main Menu Grid -->
-      <div class="menu-grid">
-        <!-- العدادات الذكية Card -->
-        <div class="menu-card">
-          <div class="card-header">
-            <ion-icon name="speedometer-outline"></ion-icon>
-            <h3>العدادات الذكية</h3>
-          </div>
-          <div class="card-body">
-            <!-- رابط محمي بكلمة مرور -->
-            <a
-              href="#"
-              class="menu-link"
-              id="smartMeterLink"
-              onclick="checkPassword(event)"
-            >
-              <ion-icon name="analytics-outline"></ion-icon>
-              <span>الفحص والصيانة - العدادات الذكية</span>
-            </a>
-          </div>
+      <div class="menu-card">
+        <div class="card-header">
+          <ion-icon name="calculator-outline"></ion-icon>
+          <h3>تركيب العدادات الذكية</h3>
         </div>
-
-        <!-- تسجيل بيانات Card -->
-        <div class="menu-card">
-          <div class="card-header">
-            <ion-icon name="clipboard-outline"></ion-icon>
-            <h3>تسجيل بيانات</h3>
-          </div>
-          <div class="card-body">
-            <a href="index.html" class="menu-link">
-              <ion-icon name="alert-circle-outline"></ion-icon>
-              <span>لوحة التحكم</span>
-            </a>
-            <a href="SMART_Added_Mod.html" class="menu-link">
-              <ion-icon name="alert-circle-outline"></ion-icon>
-              <span>إضافة / تعديل عداد</span>
-            </a>
-            <a href="SMART_Admin.html" class="menu-link">
-              <ion-icon name="construct-outline"></ion-icon>
-              <span>رفع البيانات</span>
-            </a>
-            <a href="SMART_Excel.html" class="menu-link">
-              <ion-icon name="document-text-outline"></ion-icon>
-              <span>تنزيل البيانات</span>
-            </a>
-            <a href="SMART_R.html" class="menu-link">
-              <ion-icon name="add-circle-outline"></ion-icon>
-              <span>التقارير</span>
-            </a>
-            <a href="SMART_Map.html" class="menu-link">
-              <ion-icon name="add-circle-outline"></ion-icon>
-              <span>البحث عن عداد</span>
-            </a>
-            <a href="SMART_Conv_Cord.html" class="menu-link">
-              <ion-icon name="add-circle-outline"></ion-icon>
-              <span>تحويل الإحداثيات</span>
-            </a>
-             <a href="SMART_Help.html" class="menu-link">
-              <ion-icon name="add-circle-outline"></ion-icon>
-              <span>المساعدة</span>
-            </a>
-          </div>
-        </div>
-
-        <!-- الحسابات الكهربية Card -->
-        <div class="menu-card">
-          <div class="card-header">
-            <ion-icon name="calculator-outline"></ion-icon>
-            <h3>الحسابات الكهربية</h3>
-          </div>
-          <div class="card-body">
-            <a href="Angles.html" class="menu-link">
-              <ion-icon name="angle-outline"></ion-icon>
-              <span>تحليل الزوايا</span>
-            </a>
-            <a href="PF.html" class="menu-link">
-              <ion-icon name="pie-chart-outline"></ion-icon>
-              <span>حسابات معامل القدرة</span>
-            </a>
-            <a href="Calibrations.html" class="menu-link">
-              <ion-icon name="scale-outline"></ion-icon>
-              <span>حسابات المعايرة</span>
-            </a>
-            <a href="M_T_Calculations.html" class="menu-link">
-              <ion-icon name="git-compare-outline"></ion-icon>
-              <span>مفاقيد المحولات والموتور</span>
-            </a>
-            <a href="Cables_V.D_Calculator.html" class="menu-link">
-              <ion-icon name="cable-outline"></ion-icon>
-              <span>الكابلات والفقد في الجهد</span>
-            </a>
-            <a href="Research.html" class="menu-link">
-              <ion-icon name="book-outline"></ion-icon>
-              <span>المادة العلمية للعدادات الذكية</span>
-            </a>
-            <a href="Spex.html" class="menu-link">
-              <ion-icon name="document-attach-outline"></ion-icon>
-              <span>المواصفات الفنية</span>
-            </a>
-            <a href="Tarrifs.html" class="menu-link">
-              <ion-icon name="cash-outline"></ion-icon>
-              <span>التعريفة والتشريح</span>
-            </a>
-            <a href="TVJ.html" class="menu-link">
-              <ion-icon name="tv-outline"></ion-icon>
-              <span>نظام TVJ</span>
-            </a>
-          </div>
+        <div class="card-body">
+          <a href="SMART_Dashboard.html" class="menu-link">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <span>لوحة التحكم</span>
+          </a>
+          <a href="SMART_Added_Mod.html" class="menu-link">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <span>إضافة / تعديل عداد</span>
+          </a>
+          <a href="SMART_Admin.html" class="menu-link">
+            <ion-icon name="construct-outline"></ion-icon>
+            <span>رفع البيانات</span>
+          </a>
+          <a href="SMART_Excel.html" class="menu-link">
+            <ion-icon name="document-text-outline"></ion-icon>
+            <span>تنزيل البيانات</span>
+          </a>
+          <a href="SMART_R.html" class="menu-link">
+            <ion-icon name="add-circle-outline"></ion-icon>
+            <span>التقارير</span>
+          </a>
+          <a href="SMART_Map.html" class="menu-link">
+            <ion-icon name="add-circle-outline"></ion-icon>
+            <span>البحث عن عداد</span>
+          </a>
+          <a href="SMART_Conv_Cord.html" class="menu-link">
+            <ion-icon name="add-circle-outline"></ion-icon>
+            <span>تحويل الإحداثيات</span>
+          </a>
+          <a href="SMART_Help.html" class="menu-link">
+            <ion-icon name="add-circle-outline"></ion-icon>
+            <span>المساعدة</span>
+          </a>
         </div>
       </div>
     </main>
 
-    <!-- نافذة إدخال كلمة المرور -->
-    <div id="passwordModal" class="password-modal">
-      <div class="password-modal-content">
-        <h3>
-          <ion-icon
-            name="lock-closed-outline"
-            style="color: var(--dark-green)"
-          ></ion-icon>
-          مطلوب كلمة مرور
-        </h3>
-
-        <p style="color: var(--text-light); margin-bottom: 1.5rem">
-          هذه الصفحة محمية. الرجاء إدخال كلمة المرور للمتابعة.
-        </p>
-
-        <input
-          type="password"
-          id="passwordInput"
-          class="password-input"
-          placeholder="أدخل كلمة المرور هنا"
-          onkeypress="if (event.key === 'Enter') validatePassword();"
-        />
-
-        <div class="password-buttons">
-          <button class="password-btn submit" onclick="validatePassword()">
-            <ion-icon name="checkmark-outline"></ion-icon>
-            دخول
-          </button>
-          <button class="password-btn cancel" onclick="closePasswordModal()">
-            <ion-icon name="close-outline"></ion-icon>
-            إلغاء
-          </button>
-        </div>
-
-        <div id="passwordError" class="password-error">
-          <ion-icon name="warning-outline"></ion-icon>
-          كلمة المرور غير صحيحة
-        </div>
-
-        <div
-          style="
-            margin-top: 1.5rem;
-            font-size: 0.8rem;
-            color: var(--text-light);
-          "
-        >
-          <p>كلمة المرور الافتراضية: <strong>1</strong></p>
-          <p style="font-size: 0.75rem; margin-top: 0.5rem">
-            (يمكن تغييرها عبر زر "تغيير كلمة المرور" في الأعلى)
-          </p>
-        </div>
-      </div>
-    </div>
-
     <script>
-      // كلمة المرور الافتراضية
-      const DEFAULT_PASSWORD = "1";
-      const PASSWORD_STORAGE_KEY = "smartMeterSystemPassword";
-
-      // دالة تحديث الوقت
       function updateTime() {
         const now = new Date();
-        const timeString = now.toLocaleTimeString("ar-EG", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        });
-        const dateString = now.toLocaleDateString("ar-EG", {
+        const options = {
           weekday: "long",
           year: "numeric",
           month: "long",
           day: "numeric",
-        });
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        };
         document.getElementById("currentTime").textContent =
-          `${dateString} | ${timeString}`;
+          now.toLocaleDateString("ar-EG", options);
       }
 
-      // الحصول على كلمة المرور المخزنة
-      function getStoredPassword() {
-        const stored = localStorage.getItem(PASSWORD_STORAGE_KEY);
-        return stored || DEFAULT_PASSWORD;
-      }
-
-      // حفظ كلمة مرور جديدة
-      function setPassword(newPassword) {
-        if (newPassword && newPassword.trim().length >= 4) {
-          localStorage.setItem(PASSWORD_STORAGE_KEY, newPassword.trim());
-          return true;
-        }
-        return false;
-      }
-
-      // عرض نافذة كلمة المرور
-      function showPasswordModal() {
-        document.getElementById("passwordModal").style.display = "flex";
-        document.getElementById("passwordInput").focus();
-        document.getElementById("passwordError").style.display = "none";
-        document.getElementById("passwordInput").value = "";
-      }
-
-      // إغلاق نافذة كلمة المرور
-      function closePasswordModal() {
-        document.getElementById("passwordModal").style.display = "none";
-      }
-
-      // التحقق من كلمة المرور
-      function validatePassword() {
-        const input = document.getElementById("passwordInput").value;
-        const correctPassword = getStoredPassword();
-        const errorElement = document.getElementById("passwordError");
-
-        if (input === correctPassword) {
-          // كلمة المرور صحيحة، الانتقال إلى الصفحة
-          window.location.href = "Loggin.html";
-        } else {
-          // عرض رسالة الخطأ
-          errorElement.style.display = "flex";
-          document.getElementById("passwordInput").value = "";
-          document.getElementById("passwordInput").focus();
-
-          // تأثير اهتزاز
-          const inputField = document.getElementById("passwordInput");
-          inputField.style.borderColor = "#e74c3c";
-          inputField.classList.add("shake");
-          setTimeout(() => {
-            inputField.style.borderColor = "";
-            inputField.classList.remove("shake");
-          }, 500);
-        }
-      }
-
-      // التحقق من كلمة المرور عند النقر على الرابط
-      function checkPassword(event) {
-        event.preventDefault();
-        showPasswordModal();
-      }
-
-      // تغيير كلمة المرور
-      function changePassword() {
-        const currentPass = prompt("أدخل كلمة المرور الحالية:");
-        if (!currentPass) return;
-
-        const storedPass = getStoredPassword();
-        if (currentPass !== storedPass) {
-          alert("كلمة المرور الحالية غير صحيحة");
-          return;
-        }
-
-        const newPass = prompt("أدخل كلمة المرور الجديدة (4 أحرف على الأقل):");
-        if (setPassword(newPass)) {
-          alert("تم تغيير كلمة المرور بنجاح");
-        } else {
-          alert(
-            "كلمة المرور الجديدة غير صالحة. يجب أن تحتوي على 4 أحرف على الأقل.",
-          );
-        }
-      }
-
-      // إضافة زر تغيير كلمة المرور في التنقل
-      function addChangePasswordButton() {
-        const nav = document.querySelector(".main-nav");
-        const changePassBtn = document.createElement("div");
-        changePassBtn.innerHTML = `
-                <button onclick="changePassword()" style="
-                    background: transparent;
-                    border: 1px solid var(--border-color);
-                    color: var(--text-dark);
-                    padding: 0.5rem 1rem;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    font-size: 0.9rem;
-                    font-family: 'Cairo', sans-serif;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                    transition: var(--transition);
-                ">
-                    <ion-icon name="key-outline"></ion-icon>
-                    تغيير كلمة المرور
-                </button>
-            `;
-
-        // إضافة تأثير hover
-        const btn = changePassBtn.querySelector("button");
-        btn.addEventListener("mouseover", function () {
-          this.style.borderColor = "var(--primary-green)";
-          this.style.color = "var(--dark-green)";
-        });
-        btn.addEventListener("mouseout", function () {
-          this.style.borderColor = "var(--border-color)";
-          this.style.color = "var(--text-dark)";
-        });
-
-        nav.appendChild(changePassBtn);
-      }
-
-      // تهيئة الصفحة
-      document.addEventListener("DOMContentLoaded", function () {
+      document.addEventListener("DOMContentLoaded", () => {
         updateTime();
         setInterval(updateTime, 1000);
-
-        // إضافة زر تغيير كلمة المرور
-        addChangePasswordButton();
-
-        // إضافة تأثير اهتزاز لحقل الإدخال
-        const style = document.createElement("style");
-        style.textContent = `
-                @keyframes shake {
-                    0%, 100% { transform: translateX(0); }
-                    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-                    20%, 40%, 60%, 80% { transform: translateX(5px); }
-                }
-                .shake {
-                    animation: shake 0.5s ease-in-out;
-                }
-            `;
-        document.head.appendChild(style);
       });
     </script>
   </body>
