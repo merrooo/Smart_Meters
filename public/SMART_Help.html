@@ -290,12 +290,23 @@
               <label>نوع الطلب</label>
               <select name="request_type" required>
                 <option value="">اختر النوع</option>
-                <option value="Technical">عطل تقني</option>
-                <option value="New_Record">اضافة بيانات</option>
-                <option value="Modify">تعديل بيانات</option>
+                <option value="عطل تقني">عطل تقني</option>
+                <option value="اضافة بيانات">اضافة بيانات</option>
+                <option value="تعديل بيانات">تعديل بيانات</option>
               </select>
             </div>
           </div>
+
+          <div class="form-group">
+            <label>البريد الألكتروني</label>
+            <input
+              type="email"
+              name="email"
+              placeholder="example@yahoo.com"
+              required
+            />
+          </div>
+
           <div class="form-group" style="margin-top: 10px">
             <label>التفاصيل</label>
             <textarea
@@ -335,42 +346,60 @@
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("year").textContent = new Date().getFullYear();
-        document
-          .querySelectorAll(".contact-section, .header, .footer")
-          .forEach((el) => el.classList.add("animate"));
 
         const form = document.getElementById("ticketForm");
         const statusMessage = document.getElementById("statusMessage");
         const submitBtn = document.getElementById("submitBtn");
 
+        // This maps the Arabic Option to the Database Folder Name
+        const typeMapping = {
+          "عطل تقني": "عطل تقني",
+          "اضافة بيانات": "اضافة بيانات",
+          "تعديل بيانات": "تعديل بيانات",
+        };
+
         form.addEventListener("submit", async function (e) {
           e.preventDefault();
+
           const formData = new FormData(form);
-          const reqType = formData.get("request_type");
+          const selectedArabicType = formData.get("request_type"); // The Arabic value
+          const dbFolder = typeMapping[selectedArabicType] || "General"; // The English folder name
+
           const ticketData = {
             name: formData.get("name"),
             meter_id: formData.get("meter_id"),
             message: formData.get("message"),
+            email: formData.get("email"),
             timestamp: new Date().toLocaleString("ar-EG"),
+            type: selectedArabicType, // Storing the Arabic label inside the data too
           };
 
           submitBtn.disabled = true;
           submitBtn.innerText = "جاري الحفظ...";
 
           try {
-            const customRef = window.fbRef(window.fbDB, `tickets/${reqType}`);
+            // We use the dbFolder (Technical/New_Record/Modify) so the admin panel sees it
+            const customRef = window.fbRef(window.fbDB, `tickets/${dbFolder}`);
             await window.fbSet(customRef, ticketData);
 
             statusMessage.style.display = "block";
             statusMessage.style.backgroundColor = "#d4edda";
             statusMessage.style.color = "#155724";
             statusMessage.innerText = "تم ارسال التذكرة بنجاح.";
+
             form.reset();
+
+            // Hide success message after 5 seconds
+            setTimeout(() => {
+              statusMessage.style.display = "none";
+            }, 5000);
           } catch (error) {
+            console.error(error);
             statusMessage.style.display = "block";
             statusMessage.style.backgroundColor = "#f8d7da";
             statusMessage.style.color = "#721c24";
-            statusMessage.innerText = "خطأ في الإرسال.";
+            statusMessage.innerText =
+              "خطأ في الإرسال: تأكد من الاتصال بالإنترنت.";
           } finally {
             submitBtn.disabled = false;
             submitBtn.innerText = "إرسال الطلب";
