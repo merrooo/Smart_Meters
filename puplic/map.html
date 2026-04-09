@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Qabda - خريطة العدادات الذكية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDl96h-6fqtJh5psKqT8vB5bTEay_8-BHg"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: #f1f5f9;
+            direction: rtl;
+            min-height: 100vh;
+        }
+
+        .dashboard-header {
+            background: #1e293b;
+            padding: 20px 30px;
+            border-bottom: 3px solid #3b82f6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .dashboard-header h2 {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+        }
+
+        .dashboard-header h2 i {
+            color: #3b82f6;
+        }
+
+        .header-meta {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .date-display {
+            background: rgba(59, 130, 246, 0.2);
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+        }
+
+        .btn-home {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-home:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        .wrapper {
+            display: flex;
+            height: calc(100vh - 80px);
+            background: #1e293b;
+        }
+
+        .sidebar {
+            width: 420px;
+            background: #1e293b;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            overflow-y: auto;
+            border-left: 1px solid #334155;
+        }
+
+        .sidebar h3 {
+            font-size: 22px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #3b82f6;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #3b82f6;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-group label {
+            font-size: 14px;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .control-group input {
+            padding: 12px 15px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .control-group input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .control-group button {
+            padding: 12px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .control-group button:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #10b981;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-edit {
+            background: #8b5cf6;
+        }
+
+        .btn-edit:hover {
+            background: #7c3aed;
+        }
+
+        .stats-panel {
+            background: #0f172a;
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid #334155;
+            display: none;
+        }
+
+        .stats-panel.show {
+            display: block;
+        }
+
+        .stats-panel h4 {
+            color: #3b82f6;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #334155;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: #10b981;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .action-buttons button {
+            flex: 1;
+            padding: 10px;
+            font-size: 13px;
+        }
+
+        .recent-searches {
+            background: #0f172a;
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid #334155;
+        }
+
+        .recent-searches h4 {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #94a3b8;
+        }
+
+        .recent-list {
+            list-style: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .recent-item {
+            background: rgba(59, 130, 246, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .recent-item:hover {
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        .recent-serial {
+            font-weight: bold;
+            color: #3b82f6;
+        }
+
+        .recent-coords {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        #map {
+            flex: 1;
+            height: 100%;
+        }
+
+        .map-controls {
+            position: absolute;
+            top: 100px;
+            left: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+        }
+
+        .map-control-btn {
+            background: #1e293b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .map-control-btn:hover {
+            background: #3b82f6;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(5px);
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #334155;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            padding: 15px 25px;
+            background: #1e293b;
+            border-right: 4px solid #10b981;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .notification.error { border-right-color: #ef4444; }
+        .notification.warning { border-right-color: #f59e0b; }
+        .notification.info { border-right-color: #3b82f6; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #334155;
+        }
+        .divider span {
+            padding: 0 10px;
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        .edit-mode {
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid #8b5cf6;
+        }
+
+        @media (max-width: 768px) {
+            .wrapper {
+                flex-direction: column;
+                height: auto;
+            }
+            .sidebar {
+                width: 100%;
+                max-height: 500px;
+            }
+            #map {
+                height: 500px;
+            }
+            .map-controls {
+                top: auto;
+                bottom: 20px;
+                left: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <div class="dashboard-header">
+        <h2><i class="fas fa-map-marked-alt"></i> خريطة العدادات الذكية</h2>
+        <div class="header-meta">
+            <div class="date-display">
+                <i class="fas fa-calendar-alt"></i>
+                <strong id="printDate">—</strong>
+            </div>
+            <button class="btn-home" onclick="window.location.href='Smart.html'">
+                <i class="fas fa-home"></i> الرئيسية
+            </button>
+        </div>
+    </div>
+
+    <div class="wrapper">
+        <div class="sidebar">
+            <h3><i class="fas fa-sliders-h"></i> لوحة التحكم</h3>
+
+            <!-- Search by Serial Number -->
+            <div class="control-group">
+                <label><i class="fas fa-barcode"></i> بحث برقم العداد:</label>
+                <input id="serialInput" type="text" placeholder="أدخل رقم العداد للبحث...">
+                <button id="searchBtn"><i class="fas fa-search"></i> بحث بالرقم</button>
+            </div>
+
+            <div class="divider"><span>أو</span></div>
+
+            <!-- Search by Coordinates -->
+            <div class="control-group">
+                <label><i class="fas fa-globe-americas"></i> بحث بالإحداثيات:</label>
+                <input id="latInput" type="number" step="any" placeholder="خط العرض (Latitude)">
+                <input id="lngInput" type="number" step="any" placeholder="خط الطول (Longitude)">
+                <button id="searchByCoordsBtn" class="btn-success"><i class="fas fa-map-marker-alt"></i> بحث بالإحداثيات</button>
+            </div>
+
+            <div class="divider"><span>أو</span></div>
+
+            <!-- Manual Coordinates Display -->
+            <div class="control-group">
+                <label><i class="fas fa-map-pin"></i> عرض إحداثيات يدوي:</label>
+                <input id="manualLat" type="number" step="any" placeholder="خط العرض">
+                <input id="manualLng" type="number" step="any" placeholder="خط الطول">
+                <button id="showCoordsBtn" class="btn-warning"><i class="fas fa-eye"></i> عرض على الخريطة</button>
+            </div>
+
+            <!-- Statistics Panel with Edit Button -->
+            <div class="stats-panel" id="statsPanel">
+                <h4><i class="fas fa-chart-bar"></i> معلومات العداد</h4>
+                <div class="stat-item">
+                    <span class="stat-label">رقم العداد:</span>
+                    <span class="stat-value" id="serialDisplay">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">القطاع:</span>
+                    <span class="stat-value" id="sectorDisplay">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">الهندسة:</span>
+                    <span class="stat-value" id="branchDisplay">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">النوع:</span>
+                    <span class="stat-value" id="typeDisplay">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">تاريخ التعاقد:</span>
+                    <span class="stat-value" id="dateDisplay">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">الإحداثيات:</span>
+                    <span class="stat-value" id="coordDisplay">-</span>
+                </div>
+                <div class="action-buttons">
+                    <button id="editMeterBtn" class="btn-edit"><i class="fas fa-edit"></i> تعديل الرقم</button>
+                    <button id="deleteMeterBtn" class="btn-danger"><i class="fas fa-trash"></i> حذف العداد</button>
+                </div>
+            </div>
+
+            <!-- Recent Searches -->
+            <div class="recent-searches">
+                <h4><i class="fas fa-history"></i> عمليات البحث الأخيرة</h4>
+                <ul class="recent-list" id="recentList">
+                    <li style="text-align:center; color:#94a3b8;">لا توجد عمليات بحث</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="map"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, get, update, remove, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDquJ7Juh5Gs6vyF20jwtnSWFdruPMxKak",
+            authDomain: "smart-4108d.firebaseapp.com",
+            databaseURL: "https://smart-4108d-default-rtdb.firebaseio.com",
+            projectId: "smart-4108d",
+            storageBucket: "smart-4108d.firebasestorage.app",
+            messagingSenderId: "209084102507",
+            appId: "1:209084102507:web:2e6c529a096764da99fe2e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // DOM Elements
+        const serialInput = document.getElementById("serialInput");
+        const latInput = document.getElementById("latInput");
+        const lngInput = document.getElementById("lngInput");
+        const manualLat = document.getElementById("manualLat");
+        const manualLng = document.getElementById("manualLng");
+        const searchBtn = document.getElementById("searchBtn");
+        const searchByCoordsBtn = document.getElementById("searchByCoordsBtn");
+        const showCoordsBtn = document.getElementById("showCoordsBtn");
+        const editMeterBtn = document.getElementById("editMeterBtn");
+        const deleteMeterBtn = document.getElementById("deleteMeterBtn");
+        const loadingOverlay = document.getElementById("loadingOverlay");
+        const notification = document.getElementById("notification");
+        const statsPanel = document.getElementById("statsPanel");
+        const recentList = document.getElementById("recentList");
+        const serialDisplay = document.getElementById("serialDisplay");
+        const sectorDisplay = document.getElementById("sectorDisplay");
+        const branchDisplay = document.getElementById("branchDisplay");
+        const typeDisplay = document.getElementById("typeDisplay");
+        const dateDisplay = document.getElementById("dateDisplay");
+        const coordDisplay = document.getElementById("coordDisplay");
+
+        // Set current date
+        const today = new Date();
+        document.getElementById("printDate").textContent = 
+            `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, "0")}/${String(today.getDate()).padStart(2, "0")}`;
+
+        let map, marker;
+        let allData = [];
+        let currentSelectedMeter = null;
+        let currentSelectedKey = null;
+        let recentSearches = JSON.parse(localStorage.getItem("mapRecent") || "[]");
+
+        function initMap() {
+            if (typeof google === "undefined") {
+                document.getElementById("map").innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100%;color:red;">خطأ في تحميل الخريطة</div>';
+                return;
+            }
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: 31.0515779, lng: 31.394057 },
+                zoom: 10,
+                mapTypeId: "roadmap"
+            });
+        }
+
+        function showLoading() { loadingOverlay.style.display = "flex"; }
+        function hideLoading() { loadingOverlay.style.display = "none"; }
+
+        function showNotification(message, type = "info") {
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = "flex";
+            setTimeout(() => notification.style.display = "none", 3000);
+        }
+
+        async function loadData() {
+            try {
+                const snapshot = await get(ref(db, "Smart_Qabda"));
+                if (snapshot.exists()) {
+                    const dataObj = snapshot.val();
+                    allData = Object.keys(dataObj).map(key => ({ ...dataObj[key], firebase_id: key }));
+                    console.log(`✅ Loaded ${allData.length} records`);
+                }
+                updateRecentList();
+            } catch (error) {
+                console.error("Error loading data:", error);
+            }
+        }
+
+        function updateRecentList() {
+            if (recentSearches.length === 0) {
+                recentList.innerHTML = '<li style="text-align:center; color:#94a3b8;">لا توجد عمليات بحث</li>';
+                return;
+            }
+            recentList.innerHTML = recentSearches.slice(0, 5).map(search => `
+                <li class="recent-item" onclick="window.searchBySerial('${search.serial}')">
+                    <div>
+                        <div class="recent-serial">${search.serial}</div>
+                        <div class="recent-coords">${search.lat?.toFixed(4) || '?'}°, ${search.lng?.toFixed(4) || '?'}°</div>
+                    </div>
+                    <i class="fas fa-map-marker-alt" style="color: #3b82f6;"></i>
+                </li>
+            `).join('');
+        }
+
+        function addToRecent(serial, lat, lng, data) {
+            recentSearches = recentSearches.filter(s => s.serial !== serial);
+            recentSearches.unshift({ serial, lat, lng, timestamp: new Date().toISOString() });
+            recentSearches = recentSearches.slice(0, 10);
+            localStorage.setItem("mapRecent", JSON.stringify(recentSearches));
+            updateRecentList();
+        }
+
+        function updateMap(lat, lng, serial, data, firebaseKey) {
+            if (isNaN(lat) || isNaN(lng)) {
+                showNotification("الإحداثيات غير صحيحة", "error");
+                return;
+            }
+
+            currentSelectedMeter = data;
+            currentSelectedKey = firebaseKey;
+
+            map.setCenter({ lat, lng });
+            map.setZoom(15);
+
+            if (marker) marker.setMap(null);
+            
+            marker = new google.maps.Marker({
+                position: { lat, lng },
+                map: map,
+                title: serial,
+                animation: google.maps.Animation.DROP
+            });
+
+            const infoWindow = new google.maps.InfoWindow({
+                content: `
+                    <div style="padding: 15px; font-family: 'Cairo'; direction: rtl; min-width: 250px;">
+                        <h3 style="color: #1e293b; margin-bottom: 10px; border-bottom: 2px solid #3b82f6; padding-bottom: 5px;">
+                            <i class="fas fa-microchip"></i> ${serial}
+                        </h3>
+                        <div style="margin-bottom: 8px;">
+                            <strong><i class="fas fa-map-marker-alt"></i> الإحداثيات:</strong><br>
+                            ${lat.toFixed(6)}°N, ${lng.toFixed(6)}°E
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <strong><i class="fas fa-building"></i> القطاع:</strong><br>
+                            ${data.قطاع || '-'}
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <strong><i class="fas fa-code-branch"></i> الهندسة:</strong><br>
+                            ${data.فرع || '-'}
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <strong><i class="fas fa-tag"></i> النوع:</strong><br>
+                            ${data.TYPE || '-'}
+                        </div>
+                        <div style="color: #64748b; font-size: 11px; margin-top: 10px;">
+                            <i class="fas fa-calendar"></i> ${data["تاريخ التعاقد"] || 'تاريخ غير محدد'}
+                        </div>
+                    </div>
+                `
+            });
+
+            marker.addListener("click", () => infoWindow.open(map, marker));
+            infoWindow.open(map, marker);
+
+            serialDisplay.textContent = serial;
+            sectorDisplay.textContent = data.قطاع || '-';
+            branchDisplay.textContent = data.فرع || '-';
+            typeDisplay.textContent = data.TYPE || '-';
+            dateDisplay.textContent = data["تاريخ التعاقد"] || '-';
+            coordDisplay.textContent = `${lat.toFixed(6)}°, ${lng.toFixed(6)}°`;
+            statsPanel.classList.add("show");
+        }
+
+        // ==================== EDIT METER NUMBER FUNCTION ====================
+        async function editMeterNumber() {
+            if (!currentSelectedMeter || !currentSelectedKey) {
+                showNotification("لا يوجد عداد محدد للتعديل", "warning");
+                return;
+            }
+
+            const currentSerial = currentSelectedMeter["رقم العداد"] || currentSelectedMeter.serial;
+            
+            const { value: newSerial } = await Swal.fire({
+                title: 'تعديل رقم العداد',
+                html: `
+                    <div style="text-align: right; direction: rtl;">
+                        <p><strong>الرقم الحالي:</strong> ${currentSerial}</p>
+                        <input id="newSerialInput" class="swal2-input" placeholder="أدخل الرقم الجديد" style="width: 100%; text-align: right;">
+                    </div>
+                `,
+                confirmButtonText: 'حفظ التعديل',
+                cancelButtonText: 'إلغاء',
+                showCancelButton: true,
+                preConfirm: () => {
+                    const newValue = document.getElementById('newSerialInput').value.trim();
+                    if (!newValue) {
+                        Swal.showValidationMessage('الرجاء إدخال رقم العداد الجديد');
+                    }
+                    return newValue;
+                }
+            });
+
+            if (newSerial) {
+                showLoading();
+                try {
+                    // Check if new serial already exists
+                    const existingCheck = await get(ref(db, `Smart_Qabda/${newSerial.replace(/[\.\#\$\/\[\]]/g, '_')}`));
+                    if (existingCheck.exists()) {
+                        showNotification("هذا الرقم موجود بالفعل في قاعدة البيانات", "error");
+                        hideLoading();
+                        return;
+                    }
+
+                    // Get all data of current meter
+                    const meterData = { ...currentSelectedMeter };
+                    
+                    // Update the serial number in the data
+                    meterData["رقم العداد"] = newSerial;
+                    meterData.serial = newSerial;
+                    
+                    // Create new key with new serial
+                    const newKey = newSerial.replace(/[\.\#\$\/\[\]]/g, '_');
+                    const oldKey = currentSelectedKey;
+                    
+                    // Save to new location
+                    await set(ref(db, `Smart_Qabda/${newKey}`), meterData);
+                    
+                    // Delete old location
+                    await remove(ref(db, `Smart_Qabda/${oldKey}`));
+                    
+                    showNotification(`تم تغيير رقم العداد من ${currentSerial} إلى ${newSerial}`, "success");
+                    
+                    // Reload data and update display
+                    await loadData();
+                    
+                    // Update current selection with new data
+                    currentSelectedMeter = meterData;
+                    currentSelectedKey = newKey;
+                    serialDisplay.textContent = newSerial;
+                    
+                    // Update recent searches
+                    recentSearches = recentSearches.map(s => 
+                        s.serial === currentSerial ? { ...s, serial: newSerial } : s
+                    );
+                    localStorage.setItem("mapRecent", JSON.stringify(recentSearches));
+                    updateRecentList();
+                    
+                } catch (error) {
+                    console.error("Error updating meter number:", error);
+                    showNotification("حدث خطأ أثناء تحديث الرقم", "error");
+                }
+                hideLoading();
+            }
+        }
+
+        // ==================== DELETE METER FUNCTION ====================
+        async function deleteMeter() {
+            if (!currentSelectedMeter || !currentSelectedKey) {
+                showNotification("لا يوجد عداد محدد للحذف", "warning");
+                return;
+            }
+
+            const serial = currentSelectedMeter["رقم العداد"] || currentSelectedMeter.serial;
+            
+            const result = await Swal.fire({
+                title: 'تأكيد الحذف',
+                html: `هل أنت متأكد من حذف العداد <strong>${serial}</strong>؟<br><br>هذا الإجراء لا يمكن التراجع عنه!`,
+                icon: 'warning',
+                confirmButtonText: 'نعم، احذف',
+                cancelButtonText: 'إلغاء',
+                confirmButtonColor: '#ef4444',
+                showCancelButton: true
+            });
+
+            if (result.isConfirmed) {
+                showLoading();
+                try {
+                    await remove(ref(db, `Smart_Qabda/${currentSelectedKey}`));
+                    showNotification(`تم حذف العداد ${serial} بنجاح`, "success");
+                    
+                    // Clear current selection
+                    currentSelectedMeter = null;
+                    currentSelectedKey = null;
+                    statsPanel.classList.remove("show");
+                    
+                    // Remove from recent searches
+                    recentSearches = recentSearches.filter(s => s.serial !== serial);
+                    localStorage.setItem("mapRecent", JSON.stringify(recentSearches));
+                    
+                    // Reload data
+                    await loadData();
+                    
+                    // Clear marker from map
+                    if (marker) marker.setMap(null);
+                    
+                } catch (error) {
+                    console.error("Error deleting meter:", error);
+                    showNotification("حدث خطأ أثناء حذف العداد", "error");
+                }
+                hideLoading();
+            }
+        }
+
+        // Search by serial number
+        window.searchBySerial = async function(serial) {
+            if (!serial) return;
+            showLoading();
+            
+            if (allData.length === 0) {
+                await loadData();
+            }
+            
+            const found = allData.find(item => item["رقم العداد"] === serial || item.serial === serial);
+            
+            if (found) {
+                const lat = parseFloat(found.LatitudeY || found.lat || found.Latitude || found["LatitudeY"] || 0);
+                const lng = parseFloat(found.LongitudeX || found.lon || found.Longitude || found["LongitudeX"] || 0);
+                
+                if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+                    updateMap(lat, lng, serial, found, found.firebase_id);
+                    addToRecent(serial, lat, lng, found);
+                    showNotification(`تم العثور على العداد ${serial}`, "success");
+                } else {
+                    showNotification(`العداد ${serial} لا يحتوي على إحداثيات GPS`, "warning");
+                }
+            } else {
+                showNotification(`لم يتم العثور على العداد ${serial}`, "error");
+            }
+            hideLoading();
+        };
+
+        // Search by coordinates
+        window.searchByCoordinates = async function(lat, lng) {
+            if (isNaN(lat) || isNaN(lng)) {
+                showNotification("الرجاء إدخال إحداثيات صحيحة", "warning");
+                return false;
+            }
+            
+            showLoading();
+            
+            if (allData.length === 0) {
+                await loadData();
+            }
+            
+            const metersWithCoords = allData.filter(item => {
+                const itemLat = parseFloat(item.LatitudeY || item.lat || item.Latitude || item["LatitudeY"] || 0);
+                const itemLng = parseFloat(item.LongitudeX || item.lon || item.Longitude || item["LongitudeX"] || 0);
+                return !isNaN(itemLat) && !isNaN(itemLng) && itemLat !== 0 && itemLng !== 0;
+            });
+            
+            if (metersWithCoords.length === 0) {
+                showNotification("لا توجد عدادات ذات إحداثيات في قاعدة البيانات", "warning");
+                hideLoading();
+                return false;
+            }
+            
+            function calculateDistance(lat1, lng1, lat2, lng2) {
+                const R = 6371;
+                const dLat = (lat2 - lat1) * Math.PI / 180;
+                const dLng = (lng2 - lng1) * Math.PI / 180;
+                const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                          Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                          Math.sin(dLng/2) * Math.sin(dLng/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                return R * c;
+            }
+            
+            let nearestMeter = null;
+            let minDistance = Infinity;
+            let nearestKey = null;
+            
+            for (const meter of metersWithCoords) {
+                const meterLat = parseFloat(meter.LatitudeY || meter.lat || meter.Latitude || meter["LatitudeY"] || 0);
+                const meterLng = parseFloat(meter.LongitudeX || meter.lon || meter.Longitude || meter["LongitudeX"] || 0);
+                const distance = calculateDistance(lat, lng, meterLat, meterLng);
+                
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearestMeter = meter;
+                    nearestKey = meter.firebase_id;
+                }
+            }
+            
+            if (nearestMeter) {
+                const meterLat = parseFloat(nearestMeter.LatitudeY || nearestMeter.lat || nearestMeter.Latitude || nearestMeter["LatitudeY"] || 0);
+                const meterLng = parseFloat(nearestMeter.LongitudeX || nearestMeter.lon || nearestMeter.Longitude || nearestMeter["LongitudeX"] || 0);
+                const meterSerial = nearestMeter["رقم العداد"] || nearestMeter.serial || "غير معروف";
+                
+                updateMap(meterLat, meterLng, meterSerial, nearestMeter, nearestKey);
+                addToRecent(meterSerial, meterLat, meterLng, nearestMeter);
+                showNotification(`تم العثور على أقرب عداد: ${meterSerial} (المسافة: ${minDistance.toFixed(2)} كم)`, "success");
+                hideLoading();
+                return true;
+            }
+            
+            showNotification("لم يتم العثور على عدادات قريبة", "warning");
+            hideLoading();
+            return false;
+        };
+
+        function showCoordinatesOnMap() {
+            const lat = parseFloat(manualLat.value);
+            const lng = parseFloat(manualLng.value);
+            
+            if (isNaN(lat) || isNaN(lng)) {
+                showNotification("الرجاء إدخال إحداثيات صحيحة", "warning");
+                return;
+            }
+            
+            updateMap(lat, lng, "موقع مخصص", { قطاع: '-', فرع: '-', TYPE: '-', "تاريخ التعاقد": '-' }, null);
+            showNotification("تم عرض الإحداثيات على الخريطة", "success");
+        }
+
+        // Event Listeners
+        searchBtn.addEventListener("click", () => {
+            const serial = serialInput.value.trim();
+            if (serial) window.searchBySerial(serial);
+            else showNotification("الرجاء إدخال رقم العداد", "warning");
+        });
+
+        searchByCoordsBtn.addEventListener("click", () => {
+            const lat = parseFloat(latInput.value);
+            const lng = parseFloat(lngInput.value);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                window.searchByCoordinates(lat, lng);
+            } else {
+                showNotification("الرجاء إدخال إحداثيات صحيحة", "warning");
+            }
+        });
+
+        showCoordsBtn.addEventListener("click", showCoordinatesOnMap);
+        editMeterBtn.addEventListener("click", editMeterNumber);
+        deleteMeterBtn.addEventListener("click", deleteMeter);
+
+        // Enter key support
+        serialInput.addEventListener("keypress", (e) => { if (e.key === "Enter") window.searchBySerial(serialInput.value.trim()); });
+        latInput.addEventListener("keypress", (e) => { if (e.key === "Enter") searchByCoordsBtn.click(); });
+        lngInput.addEventListener("keypress", (e) => { if (e.key === "Enter") searchByCoordsBtn.click(); });
+        manualLat.addEventListener("keypress", (e) => { if (e.key === "Enter") showCoordinatesOnMap(); });
+        manualLng.addEventListener("keypress", (e) => { if (e.key === "Enter") showCoordinatesOnMap(); });
+
+        // Map controls
+        setTimeout(() => {
+            const mapDiv = document.getElementById("map");
+            if (mapDiv && mapDiv.parentElement) {
+                const controls = document.createElement("div");
+                controls.className = "map-controls";
+                controls.innerHTML = `
+                    <button class="map-control-btn" id="resetMapBtn"><i class="fas fa-sync-alt"></i> الوضع الافتراضي</button>
+                    <button class="map-control-btn" id="toggleSatelliteBtn"><i class="fas fa-satellite"></i> القمر الصناعي</button>
+                `;
+                mapDiv.parentElement.appendChild(controls);
+                
+                document.getElementById("resetMapBtn")?.addEventListener("click", () => {
+                    map.setCenter({ lat: 31.0515779, lng: 31.394057 });
+                    map.setZoom(10);
+                    showNotification("تم إعادة الخريطة إلى الوضع الافتراضي", "info");
+                });
+                
+                document.getElementById("toggleSatelliteBtn")?.addEventListener("click", () => {
+                    if (map.getMapTypeId() === "roadmap") {
+                        map.setMapTypeId("hybrid");
+                        showNotification("الوضع: القمر الصناعي", "info");
+                    } else {
+                        map.setMapTypeId("roadmap");
+                        showNotification("الوضع: الخريطة العادية", "info");
+                    }
+                });
+            }
+        }, 500);
+
+        window.searchBySerial = searchBySerial;
+        window.searchByCoordinates = searchByCoordinates;
+
+        initMap();
+        loadData();
+        serialInput.focus();
+    </script>
+</body>
+</html>

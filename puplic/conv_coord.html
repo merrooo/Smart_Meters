@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحويل الإحداثيات - Smart Qabda</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: #f1f5f9;
+            direction: rtl;
+            padding: 20px;
+        }
+
+        /* Header */
+        .table-header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: #fff;
+            padding: 25px 30px;
+            text-align: center;
+            border-bottom: 4px solid #3b82f6;
+            border-radius: 15px 15px 0 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .table-header h2 {
+            margin-bottom: 15px;
+            font-weight: 700;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .table-header .meta {
+            font-size: 16px;
+            opacity: 0.9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        #printDate {
+            background: #3b82f6;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #1e293b;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        /* Wrapper */
+        .wrapper {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            min-height: 600px;
+        }
+
+        @media (max-width: 900px) {
+            .wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .sidebar h3 {
+            font-size: 22px;
+            margin-bottom: 10px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #3b82f6;
+        }
+
+        .sidebar h3 i {
+            color: #3b82f6;
+        }
+
+        /* Form Controls */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group label i {
+            color: #3b82f6;
+            font-size: 16px;
+        }
+
+        .form-group input {
+            padding: 14px 20px;
+            border: 2px solid #334155;
+            border-radius: 10px;
+            font-size: 16px;
+            background: #0f172a;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .form-group input::placeholder {
+            color: #64748b;
+        }
+
+        .form-group input[readonly] {
+            background: #0f172a;
+            border-color: #10b981;
+            color: #10b981;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Results Section */
+        .results-section {
+            background: #0f172a;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 10px;
+            border: 2px dashed #3b82f6;
+        }
+
+        .results-section h3 {
+            color: #3b82f6;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        /* Info Cards */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .info-card {
+            background: #0f172a;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-right: 5px solid #3b82f6;
+        }
+
+        .info-card h4 {
+            color: #3b82f6;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+        }
+
+        .info-card p {
+            color: #94a3b8;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .info-card ul {
+            padding-right: 20px;
+            color: #94a3b8;
+            line-height: 1.8;
+        }
+
+        .info-card li {
+            margin-bottom: 8px;
+        }
+
+        /* Reference Points */
+        .reference-points {
+            background: #0f172a;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .reference-points h4 {
+            color: #3b82f6;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .points-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .point-card {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #334155;
+        }
+
+        .point-card h5 {
+            color: #10b981;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .point-coordinates {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .coord-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #334155;
+        }
+
+        .coord-item:last-child {
+            border-bottom: none;
+        }
+
+        .coord-label {
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
+        .coord-value {
+            font-family: monospace;
+            background: #0f172a;
+            color: #10b981;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 25px;
+            background: #1e293b;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideDown 0.3s ease;
+            border-right: 5px solid #10b981;
+            max-width: 500px;
+            display: none;
+        }
+
+        .notification.error {
+            border-right-color: #ef4444;
+        }
+
+        .notification.warning {
+            border-right-color: #f59e0b;
+        }
+
+        .notification.info {
+            border-right-color: #3b82f6;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateX(-50%) translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Loading Spinner */
+        .fa-spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .table-header {
+                padding: 20px;
+            }
+            .table-header h2 {
+                font-size: 22px;
+            }
+            .sidebar {
+                padding: 20px;
+            }
+            .main-content {
+                padding: 20px;
+            }
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            .btn {
+                padding: 14px;
+                font-size: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .table-header h2 {
+                font-size: 20px;
+            }
+            .form-group input {
+                padding: 12px 15px;
+                font-size: 15px;
+            }
+            .points-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <!-- Header -->
+    <div class="table-header">
+        <h2><i class="fas fa-exchange-alt"></i> نظام تحويل الإحداثيات</h2>
+        <div class="meta">
+            <div>التاريخ: <strong id="printDate">—</strong></div>
+            <div><i class="fas fa-map-marker-alt"></i> تحويل خطوط العرض والطول إلى إحداثيات محلية</div>
+            <button class="btn btn-primary" onclick="window.location.href='Smart.html'">
+                <i class="fas fa-home"></i> الصفحة الرئيسية
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <div class="wrapper">
+            <!-- Sidebar - Input Controls -->
+            <div class="sidebar">
+                <h3><i class="fas fa-sliders-h"></i> إدخال البيانات</h3>
+
+                <!-- Search Section -->
+                <div class="form-group">
+                    <label for="serialInput"><i class="fas fa-search"></i> بحث برقم العداد:</label>
+                    <input id="serialInput" type="text" placeholder="أدخل رقم العداد للبحث...">
+                    <button id="searchBtn" class="btn btn-secondary">
+                        <i class="fas fa-search"></i> بحث في قاعدة البيانات
+                    </button>
+                </div>
+
+                <!-- Manual Input Section -->
+                <div class="form-group">
+                    <label for="lat"><i class="fas fa-globe-americas"></i> خط العرض (Latitude):</label>
+                    <input type="number" id="lat" step="any" placeholder="مثال: 31.2345">
+                </div>
+
+                <div class="form-group">
+                    <label for="lng"><i class="fas fa-globe-asia"></i> خط الطول (Longitude):</label>
+                    <input type="number" id="lng" step="any" placeholder="مثال: 30.1234">
+                </div>
+
+                <!-- Convert Button -->
+                <button id="convertBtn" class="btn btn-primary">
+                    <i class="fas fa-sync-alt"></i> تحويل إلى إحداثيات محلية
+                </button>
+
+                <!-- Results Section -->
+                <div class="results-section">
+                    <h3><i class="fas fa-calculator"></i> النتائج</h3>
+                    <div class="form-group">
+                        <label for="xResult"><i class="fas fa-map-pin"></i> الإحداثي X (East):</label>
+                        <input type="text" id="xResult" readonly placeholder="سيظهر هنا بعد التحويل">
+                    </div>
+                    <div class="form-group">
+                        <label for="yResult"><i class="fas fa-map-pin"></i> الإحداثي Y (North):</label>
+                        <input type="text" id="yResult" readonly placeholder="سيظهر هنا بعد التحويل">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content - Information & Reference -->
+            <div class="main-content">
+                <!-- Information Cards -->
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h4><i class="fas fa-info-circle"></i> عن هذه الأداة</h4>
+                        <p>تتيح هذه الأداة تحويل الإحداثيات الجغرافية العالمية (خطوط العرض والطول) إلى إحداثيات
+                            محلية (X,Y) تستخدم في أنظمة الخرائط المحلية وإدارة العدادات الذكية.</p>
+                    </div>
+
+                    <div class="info-card">
+                        <h4><i class="fas fa-lightbulb"></i> كيفية الاستخدام</h4>
+                        <ul>
+                            <li>ابحث عن العداد باستخدام رقم العداد</li>
+                            <li>أو أدخل الإحداثيات يدوياً</li>
+                            <li>اضغط زر التحويل للحصول على النتيجة</li>
+                            <li>انسخ الإحداثيات المحلية للاستخدام</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Reference Points -->
+                <div class="reference-points">
+                    <h4><i class="fas fa-crosshairs"></i> النقاط المرجعية المستخدمة</h4>
+                    <div class="points-grid">
+                        <div class="point-card">
+                            <h5>النقطة المرجعية 1</h5>
+                            <div class="point-coordinates">
+                                <div class="coord-item">
+                                    <span class="coord-label">خط العرض:</span>
+                                    <span class="coord-value">30.9248°</span>
+                                </div>
+                                <div class="coord-item">
+                                    <span class="coord-label">خط الطول:</span>
+                                    <span class="coord-value">6.5311°</span>
+                                </div>
+                                <div class="coord-item">
+                                    <span class="coord-label">X محلي:</span>
+                                    <span class="coord-value">31.0555</span>
+                                </div>
+                                <div class="coord-item">
+                                    <span class="coord-label">Y محلي:</span>
+                                    <span class="coord-value">31.3820</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="point-card">
+                            <h5>النقطة المرجعية 2</h5>
+                            <div class="point-coordinates">
+                                <div class="coord-item">
+                                    <span class="coord-label">خط العرض:</span>
+                                    <span class="coord-value">31.0555°</span>
+                                </div>
+                                <div class="coord-item">
+                                    <span class="coord-label">خط الطول:</span>
+                                    <span class="coord-value">31.3820°</span>
+                                </div>
+                                <div class="coord-item">
+                                    <span class="coord-label">X محلي:</span>
+                                    <span class="coord-value">31.3820</span>
+                                </div>
+                                <div class="coord-item">
+                                    <span class="coord-label">Y محلي:</span>
+                                    <span class="coord-value">31.9248</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // Firebase Configuration - Using Smart_Qabda database
+        const firebaseConfig = {
+            apiKey: "AIzaSyDquJ7Juh5Gs6vyF20jwtnSWFdruPMxKak",
+            authDomain: "smart-4108d.firebaseapp.com",
+            databaseURL: "https://smart-4108d-default-rtdb.firebaseio.com",
+            projectId: "smart-4108d",
+            storageBucket: "smart-4108d.firebasestorage.app",
+            messagingSenderId: "209084102507",
+            appId: "1:209084102507:web:2e6c529a096764da99fe2e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Set current date
+        const today = new Date();
+        document.getElementById("printDate").textContent =
+            `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
+
+        // Elements
+        const serialInput = document.getElementById('serialInput');
+        const latInput = document.getElementById('lat');
+        const lngInput = document.getElementById('lng');
+        const searchBtn = document.getElementById('searchBtn');
+        const convertBtn = document.getElementById('convertBtn');
+        const xResult = document.getElementById('xResult');
+        const yResult = document.getElementById('yResult');
+        const notification = document.getElementById('notification');
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'flex';
+
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // Search by serial number in Smart_Qabda database
+        async function searchBySerial() {
+            const serialValue = serialInput.value.trim();
+
+            if (!serialValue) {
+                showNotification('الرجاء إدخال رقم العداد للبحث', 'warning');
+                return;
+            }
+
+            try {
+                // Show loading
+                searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري البحث...';
+                searchBtn.disabled = true;
+
+                const snapshot = await get(ref(db, "Smart_Qabda"));
+
+                if (!snapshot.exists()) {
+                    showNotification('لا توجد بيانات في قاعدة البيانات', 'warning');
+                    return;
+                }
+
+                let found = false;
+                let foundData = null;
+
+                snapshot.forEach(childSnap => {
+                    const data = childSnap.val();
+                    // Search in both possible fields
+                    if (data["رقم العداد"] === serialValue || data.serial === serialValue) {
+                        foundData = data;
+                        found = true;
+                    }
+                });
+
+                if (found && foundData) {
+                    // Try different possible field names for coordinates
+                    const lat = parseFloat(foundData.LatitudeY || foundData.lat || foundData.Latitude || foundData["LatitudeY"] || 0);
+                    const lng = parseFloat(foundData.LongitudeX || foundData.lon || foundData.Longitude || foundData["LongitudeX"] || 0);
+
+                    if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+                        latInput.value = lat;
+                        lngInput.value = lng;
+                        showNotification(`تم العثور على العداد ${serialValue} وتحميل الإحداثيات`, 'success');
+                        
+                        // Auto-convert after loading
+                        convertCoordinates();
+                    } else {
+                        showNotification(`العداد ${serialValue} لا يحتوي على إحداثيات GPS`, 'warning');
+                        latInput.focus();
+                    }
+                } else {
+                    showNotification(`لم يتم العثور على العداد برقم: ${serialValue}`, 'error');
+                }
+
+            } catch (error) {
+                console.error('Error searching:', error);
+                showNotification('حدث خطأ أثناء البحث في قاعدة البيانات', 'error');
+            } finally {
+                // Reset button
+                searchBtn.innerHTML = '<i class="fas fa-search"></i> بحث في قاعدة البيانات';
+                searchBtn.disabled = false;
+            }
+        }
+
+        // Reference points for conversion (using the same as original)
+        const referencePoints = {
+            original: [
+                { lat: 30.9248, lng: 6.5311 },
+                { lat: 31.0554702, lng: 31.38197473 }
+            ],
+            target: [
+                { x: 31.0554702, y: 31.38197473 },
+                { x: 31.38197473, y: 31.9248 }
+            ]
+        };
+
+        // Convert coordinates
+        function convertCoordinates() {
+            const lat = parseFloat(latInput.value);
+            const lng = parseFloat(lngInput.value);
+
+            if (isNaN(lat) || isNaN(lng)) {
+                showNotification('الرجاء إدخال قيم صحيحة للإحداثيات', 'warning');
+                latInput.focus();
+                return;
+            }
+
+            // Validate input range
+            if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                showNotification('الإحداثيات خارج النطاق المسموح به', 'error');
+                return;
+            }
+
+            try {
+                // Show loading
+                convertBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحويل...';
+                convertBtn.disabled = true;
+
+                // Perform conversion using linear interpolation
+                const { original, target } = referencePoints;
+
+                const latDiff = original[1].lat - original[0].lat;
+                const lngDiff = original[1].lng - original[0].lng;
+
+                const xDiff = target[1].x - target[0].x;
+                const yDiff = target[1].y - target[0].y;
+
+                // Calculate using linear interpolation
+                const x = target[0].x + ((lat - original[0].lat) / latDiff) * xDiff;
+                const y = target[0].y + ((lng - original[0].lng) / lngDiff) * yDiff;
+
+                // Round to 6 decimal places
+                const roundedX = Math.round(x * 1000000) / 1000000;
+                const roundedY = Math.round(y * 1000000) / 1000000;
+
+                // Display results
+                xResult.value = roundedX;
+                yResult.value = roundedY;
+
+                // Show success message
+                showNotification(`تم التحويل بنجاح: X = ${roundedX}, Y = ${roundedY}`, 'success');
+
+                // Focus on result for easy copying
+                xResult.focus();
+                xResult.select();
+
+            } catch (error) {
+                console.error('Error converting coordinates:', error);
+                showNotification('حدث خطأ أثناء عملية التحويل', 'error');
+            } finally {
+                // Reset button
+                convertBtn.innerHTML = '<i class="fas fa-sync-alt"></i> تحويل إلى إحداثيات محلية';
+                convertBtn.disabled = false;
+            }
+        }
+
+        // Copy to clipboard function
+        function copyToClipboard(text, fieldName) {
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification(`تم نسخ ${fieldName} إلى الحافظة`, 'success');
+            }).catch(() => {
+                showNotification('فشل نسخ النص إلى الحافظة', 'error');
+            });
+        }
+
+        // Event Listeners
+        searchBtn.addEventListener('click', searchBySerial);
+        convertBtn.addEventListener('click', convertCoordinates);
+
+        // Allow Enter key to trigger search
+        serialInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                searchBySerial();
+            }
+        });
+
+        // Allow Enter key to trigger conversion
+        latInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                convertCoordinates();
+            }
+        });
+
+        lngInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                convertCoordinates();
+            }
+        });
+
+        // Add click to copy functionality
+        xResult.addEventListener('click', function () {
+            if (this.value) {
+                copyToClipboard(this.value, 'الإحداثي X');
+            }
+        });
+
+        yResult.addEventListener('click', function () {
+            if (this.value) {
+                copyToClipboard(this.value, 'الإحداثي Y');
+            }
+        });
+
+        // Show welcome message
+        setTimeout(() => {
+            showNotification('مرحباً بك في نظام تحويل الإحداثيات', 'info');
+        }, 1000);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>نظام معالجة بيانات العدادات الذكي | المركزي للمرافق</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- XLSX Library for Excel/CSV parsing -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <!-- SweetAlert2 for elegant notifications -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>📊 معالج بيانات العدادات الموحد</h1>
+            <p>المرجع الأساسي: رقم العداد | المخرجات: ملفات مطابقة للنماذج الأصلية</p>
+        </header>
+
+        <main class="content">
+            <div class="upload-area" id="dropZone">
+                <div class="icon">📁</div>
+                <h3>اسحب وأفلت جميع الملفات هنا</h3>
+                <input type="file" id="fileInput" multiple accept=".xlsx, .xls, .csv" hidden>
+                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">📂 اختيار الملفات</button>
+            </div>
+
+            <div id="fileListContainer" class="file-card" style="display: none;">
+                <h4>📋 الملفات المختارة:</h4>
+                <ul id="fileList"></ul>
+                <button class="btn btn-process" id="processBtn">🔄 بدء دمج ومعالجة البيانات</button>
+            </div>
+
+            <div id="downloadSection" class="download-grid" style="display: none;">
+                <div class="status-bar">
+                    ✅ تمت المعالجة. إجمالي العدادات الفريدة: <span id="uniqueCount">0</span>
+                    <span style="font-size: 12px; margin-right: 15px;">📌 المعامل الافتراضي = 1 | القدرة = "-" إن وجدت</span>
+                </div>
+                <button class="btn btn-download" data-type="A1">📎 تحميل ملف Type_A1</button>
+                <button class="btn btn-download" data-type="A2">📎 تحميل ملف Type_A2</button>
+                <button class="btn btn-download" data-type="A3">📎 تحميل ملف Type_A3</button>
+                <button class="btn btn-download" data-type="A4">📎 تحميل ملف Type_A4</button>
+                <button class="btn btn-download" data-type="A5">📎 تحميل ملف Type_A5</button>
+                <button class="btn btn-all" data-type="ALL">📊 تحميل الملف العام (All Meters)</button>
+            </div>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary: #2563eb;
+    --primary-dark: #1e40af;
+    --success: #059669;
+    --success-dark: #047857;
+    --danger: #dc2626;
+    --dark: #0f172a;
+    --light-gray: #f1f5f9;
+    --border: #e2e8f0;
+    --text-main: #1e293b;
+    --text-muted: #475569;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+body {
+    font-family: 'Segoe UI', 'Tahoma', system-ui, 'Cairo', sans-serif;
+    background: #f1f5f9;
+    direction: rtl;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 28px;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.header {
+    background: linear-gradient(135deg, var(--dark) 0%, #1e293b 100%);
+    color: white;
+    padding: 28px 32px;
+    text-align: center;
+    border-bottom: 4px solid var(--primary);
+}
+
+.header h1 {
+    font-size: 1.9rem;
+    letter-spacing: -0.3px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.header p {
+    margin-top: 8px;
+    opacity: 0.85;
+    font-size: 0.95rem;
+}
+
+.content {
+    padding: 32px;
+}
+
+.upload-area {
+    border: 2px dashed #cbd5e1;
+    border-radius: 24px;
+    padding: 48px 24px;
+    text-align: center;
+    background: #fefefe;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    margin-bottom: 20px;
+}
+
+.upload-area:hover {
+    border-color: var(--primary);
+    background: #f8fafc;
+    transform: scale(0.99);
+    box-shadow: var(--shadow-sm);
+}
+
+.icon {
+    font-size: 56px;
+    margin-bottom: 12px;
+}
+
+.upload-area h3 {
+    color: var(--text-main);
+    margin-bottom: 16px;
+    font-weight: 500;
+}
+
+.btn {
+    padding: 12px 26px;
+    border: none;
+    border-radius: 40px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.file-card {
+    margin-top: 24px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: var(--shadow-sm);
+}
+
+.file-card h4 {
+    color: var(--dark);
+    margin-bottom: 12px;
+    font-size: 1.1rem;
+}
+
+#fileList {
+    list-style: none;
+    padding: 0;
+    max-height: 180px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+}
+
+#fileList li {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 14px;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#fileList li::before {
+    content: "📄";
+    font-size: 14px;
+}
+
+.btn-process {
+    background: var(--success);
+    color: white;
+    width: 100%;
+    margin-top: 8px;
+    font-weight: 700;
+}
+
+.btn-process:hover {
+    background: var(--success-dark);
+    transform: translateY(-1px);
+}
+
+.download-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 15px;
+    margin-top: 32px;
+}
+
+.status-bar {
+    grid-column: 1/-1;
+    background: #dcfce7;
+    color: #166534;
+    padding: 14px 18px;
+    border-radius: 60px;
+    margin-bottom: 8px;
+    font-weight: 500;
+    text-align: center;
+    border-right: 5px solid var(--success);
+}
+
+.btn-download {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    color: var(--dark);
+    transition: all 0.2s;
+}
+
+.btn-download:hover {
+    background: var(--dark);
+    color: white;
+    border-color: var(--dark);
+    transform: translateY(-2px);
+}
+
+.btn-all {
+    background: var(--primary);
+    color: white;
+    grid-column: span 1;
+    font-weight: 700;
+}
+
+.btn-all:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+@media (max-width: 640px) {
+    .content {
+        padding: 20px;
+    }
+    .header h1 {
+        font-size: 1.4rem;
+    }
+    .download-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * نظام معالجة بيانات العدادات المركزي - الإصدار المعتمد
+ * المرجع الأساسي: رقم العداد
+ */
+
+let finalDataMap = new Map();
+let categorizedData = { A1: [], A2: [], A3: [], A4: [], A5: [], ALL: [] };
+
+// الهيكل النهائي الصارم (41 عموداً)
+const FULL_ORIGINAL_HEADER = [
+    "كود المشترك", "فرع", "منطقة", "يومية", "مرجع", "فرعى", "وحده", "اسم المشترك", 
+    "الرقم القومي", "العنوان", "رقم التليفون", "نوع الرسائل", "نوع الرسائل2", 
+    "كود السداد", "حالة الاشتراك", "الجهد", "القدرة", "معامل الضرب", "رقم العداد", 
+    "SIM_S_Num", "BadgeNumber", "Manufacturer", "Model", "Name of connected Feeder", 
+    "Name of connected KIOSK", "Disco", "Address (General Region)", "Address (Region)", 
+    "Area", "LossesArea", "DeviceFunction", "DistributionFacility", "تاريخ التعاقد", 
+    "نوع التعاقد// العداد", "النشاط", "Address4", "TYPE", "LatitudeY", "LongitudeX", 
+    "DivisionCode", "Date"
+];
+
+// مرادفات الحقول لضمان جلب البيانات حتى لو اختلف المسمى في الملف المرفوع
+const COLUMN_ALIASES = {
+    meterNumber: ['رقم العداد', 'BadgeNumber', 'Meter_Number', 'Serial', 'Meter No', 'رقم_العداد'],
+    multiplier: ['معامل الضرب', 'معامل_الضرب', 'Multiplier', 'Factor', 'معامل ضرب'],
+    power: ['القدرة', 'القدره', 'Power', 'Capacity', 'القدرة_المعاقد_عليها']
+};
+
+/** --- دوال المساعدة --- **/
+
+function findValueByAlias(row, aliasArray) {
+    for (let alias of aliasArray) {
+        let key = Object.keys(row).find(k => k.trim().toLowerCase() === alias.toLowerCase());
+        if (key && row[key] !== undefined && row[key] !== null && String(row[key]).trim() !== "") {
+            return row[key];
+        }
+    }
+    return "";
+}
+
+async function readExcel(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                const firstSheetName = workbook.SheetNames[0];
+                const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName], { defval: "" });
+                resolve(jsonData);
+            } catch (err) { reject(err); }
+        };
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+/** --- المعالجة والدمج --- **/
+/** --- المعالجة والدمج المحسنة --- **/
+
+async function processAllFiles(files) {
+    finalDataMap.clear();
+    
+    for (const file of files) {
+        const jsonRows = await readExcel(file);
+        
+        jsonRows.forEach(row => {
+            // استخراج رقم العداد (المرجع الأساسي)
+            const meterNo = findValueByAlias(row, COLUMN_ALIASES.meterNumber).toString().trim();
+            if (!meterNo) return;
+
+            let existing = finalDataMap.get(meterNo) || {};
+            let merged = { ...existing };
+
+            // ملء الأعمدة الـ 41 عموداً بعمود
+            FULL_ORIGINAL_HEADER.forEach(header => {
+                let val = "";
+                
+                if (header === "رقم العداد") {
+                    val = meterNo;
+                } else if (header === "معامل الضرب") {
+                    // البحث عن القيمة في الملفات المرفوعة
+                    let foundVal = findValueByAlias(row, COLUMN_ALIASES.multiplier);
+                    // إذا كانت فارغة تماماً، نجعلها "-" ولا نضع "1"
+                    val = (foundVal !== undefined && foundVal !== null && foundVal !== "") ? foundVal : "-";
+                } else if (header === "القدرة") {
+                    let foundPower = findValueByAlias(row, COLUMN_ALIASES.power);
+                    val = (foundPower !== undefined && foundPower !== null && foundPower !== "") ? foundPower : "-";
+                } else {
+                    val = row[header] !== undefined ? row[header] : "";
+                }
+
+                // تحديث البيانات في السجل المدمج
+                // نحدث القيمة إذا كان السجل الحالي فارغاً أو يحتوي على "-" بينما الملف الجديد يحتوي على قيمة فعلية
+                if ((merged[header] === undefined || merged[header] === "" || merged[header] === "-") && (val !== "" && val !== "-")) {
+                    merged[header] = val;
+                } 
+                // إذا لم تكن هناك قيمة قديمة أصلاً، نضع القيمة الحالية (حتى لو كانت "-")
+                else if (merged[header] === undefined) {
+                    merged[header] = val;
+                }
+            });
+
+            finalDataMap.set(meterNo, merged);
+        });
+    }
+}
+
+function categorizeMeters() {
+    categorizedData = { A1: [], A2: [], A3: [], A4: [], A5: [], ALL: [] };
+    
+    finalDataMap.forEach((data) => {
+        // تحديد النوع بناءً على عمود TYPE أو "نوع التعاقد// العداد"
+        let typeRaw = (data["TYPE"] || data["نوع التعاقد// العداد"] || "").toString().toUpperCase();
+        
+        let category = ""; 
+        if (typeRaw.includes('A1')) category = 'A1';
+        else if (typeRaw.includes('A2')) category = 'A2';
+        else if (typeRaw.includes('A3')) category = 'A3';
+        else if (typeRaw.includes('A4')) category = 'A4';
+        else if (typeRaw.includes('A5')) category = 'A5';
+
+        if (category) categorizedData[category].push(data);
+        categorizedData.ALL.push(data);
+    });
+}
+
+/** --- التصدير والتحميل --- **/
+
+function exportToExcel(category) {
+    const rawData = categorizedData[category];
+    if (!rawData || rawData.length === 0) {
+        Swal.fire('تنبيه', `لا توجد بيانات للفئة ${category}`, 'info');
+        return;
+    }
+
+    // بناء المصفوفة لضمان الترتيب الصارم للأعمدة
+    const worksheetData = rawData.map(item => {
+        return FULL_ORIGINAL_HEADER.map(header => item[header] || "");
+    });
+
+    // إضافة الهيدر في أول صف
+    worksheetData.unshift(FULL_ORIGINAL_HEADER);
+
+    const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+    const wb = XLSX.utils.book_new();
+    const fileName = category === 'ALL' ? "General_meters_all.xlsx" : `${category}_meters_data.xlsx`;
+    
+    XLSX.utils.book_append_sheet(wb, ws, "Meters_Data");
+    XLSX.writeFile(wb, fileName);
+}
+
+/** --- أحداث الواجهة (Events) --- **/
+
+document.addEventListener('DOMContentLoaded', () => {
+    const fileInput = document.getElementById('fileInput');
+    const processBtn = document.getElementById('processBtn');
+
+    // عند اختيار الملفات
+    fileInput.addEventListener('change', (e) => {
+        const files = e.target.files;
+        if (files.length > 0) {
+            document.getElementById('fileListContainer').style.display = 'block';
+            const list = document.getElementById('fileList');
+            list.innerHTML = '';
+            Array.from(files).forEach(f => {
+                const li = document.createElement('li');
+                li.textContent = `📄 ${f.name}`;
+                list.appendChild(li);
+            });
+        }
+    });
+
+    // عند الضغط على زر المعالجة
+    processBtn.addEventListener('click', async () => {
+        if (fileInput.files.length === 0) return;
+
+        Swal.fire({
+            title: 'جاري معالجة البيانات...',
+            text: 'يتم الآن فحص العدادات ودمج السجلات المكررة',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        try {
+            await processAllFiles(fileInput.files);
+            categorizeMeters();
+
+            document.getElementById('uniqueCount').innerText = finalDataMap.size;
+            document.getElementById('downloadSection').style.display = 'grid';
+
+            Swal.fire('تمت العملية', `تم دمج ${finalDataMap.size} عداد فريد بنجاح`, 'success');
+        } catch (error) {
+            console.error(error);
+            Swal.fire('خطأ', 'حدث خطأ أثناء معالجة الملفات', 'error');
+        }
+    });
+
+    // ربط أزرار التحميل
+    document.querySelectorAll('.btn-download, .btn-all').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const type = this.getAttribute('data-type');
+            exportToExcel(type);
+        });
+    });
+});
+
+
+
