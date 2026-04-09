@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أداة حذف مسار Firebase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --danger: #e74c3c; --primary: #3498db; --dark: #2c3e50; --bg: #f4f7f6; }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--bg); padding: 20px; direction: rtl; }
+        .container { max-width: 700px; margin: 0 auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        h1 { color: var(--dark); text-align: center; font-size: 22px; margin-bottom: 25px; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--dark); }
+        
+        .section { margin-bottom: 20px; padding: 15px; border: 1px solid #eee; border-radius: 10px; }
+        textarea { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-family: monospace; font-size: 13px; resize: vertical; box-sizing: border-box; background: #fafafa; }
+        input[type="text"] { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; direction: ltr; font-weight: bold; }
+        
+        .config-area { height: 180px; border-color: var(--primary); }
+        
+        .btn-execute { width: 100%; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; background-color: var(--danger); color: white; transition: 0.3s; margin-top: 10px; }
+        .btn-execute:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn-execute:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+        
+        #statusLog { margin-top: 20px; padding: 15px; background: #222; color: #00ff00; border-radius: 8px; font-size: 12px; max-height: 250px; overflow-y: auto; white-space: pre-wrap; direction: ltr; text-align: left; }
+        .status-header { display: flex; justify-content: space-between; align-items: center; color: white; margin-bottom: 10px; font-size: 14px; border-bottom: 1px solid #444; padding-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1><i class="fas fa-trash-alt"></i> مدير حذف مسارات Firebase</h1>
+
+    <div class="section">
+        <label><i class="fas fa-code"></i> 1. كود إعدادات Firebase (firebaseConfig):</label>
+        <textarea id="configInput" class="config-area" placeholder="إلصق كود الإعدادات هنا..."></textarea>
+    </div>
+
+    <div class="section">
+        <label><i class="fas fa-folder-open"></i> 2. المسار المراد حذفه بالكامل:</label>
+        <input type="text" id="basePath" placeholder="مثال: Users/User123 أو SMART">
+    </div>
+
+    <button class="btn-execute" id="startAction">تنفيذ الحذف النهائي</button>
+
+    <div id="statusLog">
+        <div class="status-header">
+            <span><i class="fas fa-terminal"></i> Terminal Log</span>
+            <span id="connectionStatus" style="color: #ff9800;">Idle</span>
+        </div>
+        <div id="logContent"></div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp, deleteApp, getApps } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const logContent = document.getElementById('logContent');
+    const connStatus = document.getElementById('connectionStatus');
+    const btn = document.getElementById('startAction');
+
+    function writeLog(msg, color = "#00ff00") {
+        const div = document.createElement('div');
+        div.style.color = color;
+        div.style.marginBottom = "5px";
+        div.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        logContent.appendChild(div);
+        const logBox = document.getElementById('statusLog');
+        logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function parseFirebaseConfig(text) {
+        try {
+            // محاولة تنظيف النص لاستخراج الكائن فقط
+            const jsonMatch = text.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) throw new Error();
+            
+            // تحويل الصيغة البرمجية إلى JSON صالح
+            let configStr = jsonMatch[0]
+                .replace(/(\w+):/g, '"$1":') 
+                .replace(/'/g, '"')
+                .replace(/,(\s*})/g, '$1');
+                
+            return JSON.parse(configStr);
+        } catch (e) {
+            throw new Error("فشل تحليل الإعدادات. تأكد من نسخ الكائن { ... } بشكل صحيح.");
+        }
+    }
+
+    btn.onclick = async () => {
+        const configRaw = document.getElementById('configInput').value.trim();
+        const pathToDelete = document.getElementById('basePath').value.trim();
+
+        if (!configRaw || !pathToDelete) {
+            return alert("الرجاء إدخال الإعدادات والمسار المطلوب حذفه.");
+        }
+
+        if (!confirm(`تحذير! سيتم حذف المسار [ ${pathToDelete} ] وكل ما يحتويه نهائياً. هل أنت متأكد؟`)) {
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = "جاري الحذف...";
+        logContent.innerHTML = "";
+
+        try {
+            writeLog("جاري تحليل إعدادات المشروع...", "#3498db");
+            const config = parseFirebaseConfig(configRaw);
+
+            // إنهاء أي اتصال قديم
+            if (getApps().length > 0) await deleteApp(getApps()[0]);
+
+            const app = initializeApp(config);
+            const database = getDatabase(app);
+            
+            connStatus.innerText = "Connected to " + (config.projectId || "Project");
+            writeLog("✅ تم الاتصال بقاعدة البيانات.");
+            writeLog(`🚀 جاري محاولة حذف المسار: ${pathToDelete}...`, "#f1c40f");
+
+            // تنفيذ عملية الحذف
+            await remove(ref(database, pathToDelete));
+            
+            writeLog(`✅ تم حذف المسار [${pathToDelete}] بنجاح تام.`, "#00ff00");
+            connStatus.innerText = "Operation Success";
+
+        } catch (err) {
+            console.error(err);
+            writeLog("🛑 خطأ: " + err.message, "#e74c3c");
+            connStatus.innerText = "Error";
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "تنفيذ الحذف النهائي";
+        }
+    };
+</script>
+
+</body>
+</html>

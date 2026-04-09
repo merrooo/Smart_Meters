@@ -44,27 +44,83 @@ const ROWS_PER_PAGE = 20;
 
 function convertToDDMMYYYY(dateValue) {
     if (!dateValue) return "";
+
+    // If already in dd/mm/yyyy format, return as is
     if (typeof dateValue === 'string' && /^\d{2}\/\d{2}\/\d{4}$/.test(dateValue)) return dateValue;
+
     try {
+        // Handle Excel serial date number
+        if (typeof dateValue === 'number' && dateValue > 40000 && dateValue < 50000) {
+            const excelEpoch = new Date(1899, 11, 30);
+            const date = new Date(excelEpoch.getTime() + dateValue * 86400000);
+            if (!isNaN(date.getTime())) {
+                return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+            }
+        }
+
+        // Handle Date object
         if (dateValue instanceof Date && !isNaN(dateValue)) {
             return `${String(dateValue.getDate()).padStart(2, '0')}/${String(dateValue.getMonth() + 1).padStart(2, '0')}/${dateValue.getFullYear()}`;
         }
+
         const dateStr = String(dateValue).trim();
-        let match = dateStr.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+
+        // Handle "2/25/2026 12:00:00 AM" format (MM/DD/YYYY with time)
+        let match = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+\d{1,2}:\d{2}:\d{2}\s+(AM|PM)$/i);
+        if (match) {
+            let month = parseInt(match[1], 10);
+            let day = parseInt(match[2], 10);
+            let year = match[3];
+            return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
+        }
+
+        // Handle "2/25/2026" format (MM/DD/YYYY without time)
+        match = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        if (match) {
+            let month = parseInt(match[1], 10);
+            let day = parseInt(match[2], 10);
+            let year = match[3];
+            // If month > 12, it's probably DD/MM/YYYY format
+            if (month > 12) {
+                return `${String(month).padStart(2, '0')}/${String(day).padStart(2, '0')}/${year}`;
+            }
+            return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
+        }
+
+        // Handle YYYY-MM-DD format (from date input)
+        match = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+        if (match) {
+            return `${String(parseInt(match[3])).padStart(2, '0')}/${String(parseInt(match[2])).padStart(2, '0')}/${match[1]}`;
+        }
+
+        // Handle DD/MM/YYYY or DD-MM-YYYY
+        match = dateStr.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
         if (match) {
             let day = match[1], month = match[2], year = match[3];
-            if (parseInt(month) > 12) { let temp = day; day = month; month = temp; }
+            if (parseInt(month) > 12) {
+                let temp = day; day = month; month = temp;
+            }
             return `${String(parseInt(day)).padStart(2, '0')}/${String(parseInt(month)).padStart(2, '0')}/${year}`;
         }
-        match = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-        if (match) return `${String(parseInt(match[3])).padStart(2, '0')}/${String(parseInt(match[2])).padStart(2, '0')}/${match[1]}`;
+
+        // Try to parse any date string
+        const parsedDate = new Date(dateStr);
+        if (!isNaN(parsedDate.getTime())) {
+            return `${String(parsedDate.getDate()).padStart(2, '0')}/${String(parsedDate.getMonth() + 1).padStart(2, '0')}/${parsedDate.getFullYear()}`;
+        }
+
         return dateStr;
-    } catch (e) { return dateValue; }
+    } catch (e) {
+        return String(dateValue);
+    }
 }
 
 function processValue(value, fieldName) {
     if (!value) return "";
-    return DATE_COLUMNS.includes(fieldName) ? convertToDDMMYYYY(value) : String(value).trim();
+    if (DATE_COLUMNS.includes(fieldName)) {
+        return convertToDDMMYYYY(value);
+    }
+    return String(value).trim();
 }
 
 function sanitizeKey(key) { return String(key).trim().replace(/[\.\#\$\/\[\]]/g, '_'); }
@@ -104,11 +160,11 @@ function renderTable() {
     const start = (currentPage - 1) * ROWS_PER_PAGE;
     const pageData = currentResults.slice(start, start + ROWS_PER_PAGE);
     if (pageData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="100%" style="text-align:center; padding:50px;">لا توجد بيانات<\/td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="100%" style="text-align:center; padding:50px;">لا توجد بيانات<\/td><\/tr>`;
     } else {
         tbody.innerHTML = pageData.map(item => {
             const fId = item.firebase_id;
-            return `<tr><td style="position:sticky; right:0; background:#1e293b;"><div style="display:flex; gap:8px;"><button class="save-row-btn" onclick="window.saveRow('${fId}', this)" style="background:#10b981; border:none; border-radius:6px; padding:6px 10px; cursor:pointer; color:white;"><i class="fas fa-save"></i></button><button class="delete-row-btn" onclick="window.deleteRow('${fId}')" style="background:#ef4444; border:none; border-radius:6px; padding:6px 10px; cursor:pointer; color:white;"><i class="fas fa-trash"></i></button></div><\/td>${FULL_COLUMNS.map(col => `<td contenteditable="true" data-key="${col}" data-id="${fId}">${escapeHtml(String(item[col] || ''))}<\/td>`).join('')} </tr>`;
+            return `<tr><td style="position:sticky; right:0; background:#1e293b;"><div style="display:flex; gap:8px;"><button class="save-row-btn" onclick="window.saveRow('${fId}', this)" style="background:#10b981; border:none; border-radius:6px; padding:6px 10px; cursor:pointer; color:white;"><i class="fas fa-save"></i></button><button class="delete-row-btn" onclick="window.deleteRow('${fId}')" style="background:#ef4444; border:none; border-radius:6px; padding:6px 10px; cursor:pointer; color:white;"><i class="fas fa-trash"></i></button></div><\/td>${FULL_COLUMNS.map(col => `<td contenteditable="true" data-key="${col}" data-id="${fId}">${escapeHtml(String(item[col] || ''))}<\/td>`).join('')} <\/tr>`;
         }).join('');
     }
     const totalPages = Math.ceil(currentResults.length / ROWS_PER_PAGE);
@@ -223,7 +279,15 @@ if (processBtn) {
                 const merged = { ...existing[key] };
                 let hasNew = false;
                 for (const [k, v] of Object.entries(newData)) {
-                    if (v && (!existing[key]?.[k] || existing[key][k] === "")) { merged[k] = v; hasNew = true; }
+                    if (v && (!existing[key]?.[k] || existing[key][k] === "")) {
+                        // Ensure تاريخ التعاقد is properly formatted without time
+                        if (k === "تاريخ التعاقد") {
+                            merged[k] = convertToDDMMYYYY(v);
+                        } else {
+                            merged[k] = v;
+                        }
+                        hasNew = true;
+                    }
                 }
                 merged["رقم العداد"] = meterId;
                 merged["rise_date_session"] = formattedDate;
