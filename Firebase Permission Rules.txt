@@ -1,0 +1,19 @@
+{
+  "rules": {
+    "Smart_Qabda": {
+      ".read": true,
+      ".write": true,
+      ".indexOn": [
+        "TYPE",
+        "SIM_S_Num",
+        "DivisionCode",
+        "رقم العداد",
+        "تاريخ التعاقد",
+        "rise_date",
+        "Address (General Region)",
+        "Address (Region)",
+        "BadgeNumber"
+      ]
+    }
+  }
+}
